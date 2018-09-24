@@ -10,9 +10,7 @@ pipeline {
         }
         stage('Publish') {
             steps {
-                ansiColor('xterm') {
-                    sh 'sbt docker:publish'
-                }
+                sh 'sbt docker:publish'
             }
         }
         stage('Deploy test'){
