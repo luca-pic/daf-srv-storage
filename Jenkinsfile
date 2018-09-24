@@ -22,7 +22,7 @@ pipeline {
                 KUBECONFIG = '${JENKINS_HOME}/.kube/config.teamdigitale-staging'
             }
             steps {
-                sh 'cd kubernetes; sh deploy.sh test ${JENKINS_HOME}/.kube/config.teamdigitale-staging'
+                sh 'eval System.setProperty("KUBECONFIG", ${KUBECONFIG}); cd kubernetes; sh deploy.sh test'
                 slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}] deployed in '${env.DEPLOY_ENV}' https://cd.daf.teamdigitale.it/blue/organizations/jenkins/daf-srv-storage/activity")
             }
         }
