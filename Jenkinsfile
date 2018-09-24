@@ -4,10 +4,8 @@ pipeline {
     stages {
         stage('Compile') {
             steps {
-                ansiColor('xterm') {
-                    slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkins/daf-srv-storage/activity")
-                    sh 'sbt clean compile'
-                }
+                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkins/daf-srv-storage/activity")
+                sh 'sbt clean compile'
             }
         }
         stage('Publish') {
