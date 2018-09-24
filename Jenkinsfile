@@ -20,7 +20,7 @@ pipeline {
             }
             environment {
                 DEPLOY_ENV = 'test'
-                KUBECONFIG = '${JENKINS_HOME}/.kube/config.teamdigitale-staging'
+                KUBECONFIG = '${env.JENKINS_HOME}/.kube/config.teamdigitale-staging'
             }
             steps {
                 sh '''export KUBECONFIG="${KUBECONFIG}"; cd kubernetes; sh deploy.sh test'''
