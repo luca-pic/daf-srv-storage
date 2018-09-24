@@ -2,17 +2,8 @@
 
 set -e
 
-# cd ../../bin
-# . ./setVersions.sh
-# cd -
+# deployEnv=$1
 
-export STORAGE_MANAGER_VERSION=1.0.0-SNAPSHOT
-
-# test for template
-envsubst < daf_storage_manager.yml > output.yml
-
-kubectl delete -f output.yml
-
-kubectl create -f output.yml
-
-rm output.yml
+kubectl --kubeconfig=$KUBECONFIG delete configmap storage-manager-conf
+kubectl --kubeconfig=$KUBECONFIG create configmap storage-manager-conf --from-file=../conf/${DEPLOY_ENV}/daf.conf
+kubectl --kubeconfig=$KUBECONFIG replace -f daf-storage-manager-${DEPLOY_ENV}.yml --force
