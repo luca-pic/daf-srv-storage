@@ -10,6 +10,7 @@ pipeline {
         }
         stage('Publish') {
             steps {
+                echo 'sbt docker:publish'
                 // sh 'sbt docker:publish'
             }
         }
