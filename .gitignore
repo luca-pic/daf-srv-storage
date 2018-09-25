@@ -18,6 +18,7 @@ storage_manager/core/opendata
 */.ensime_cache/
 */.ensime
 opendata
+kubernetes/output.yml
 kubernetes/secrets-test.yml
 kubernetes/secrets-prod.yml
 project/project
