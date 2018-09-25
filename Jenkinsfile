@@ -39,7 +39,7 @@ pipeline {
             agent { label 'prod' }
             environment {
                 DEPLOY_ENV = 'prod'
-                KUBECONFIG = '~/.kube/config.teamdigitale-prod'
+                KUBECONFIG = '~/.kube/config.teamdigitale-production'
             }
             steps {
                 sh 'cd kubernetes; sh deploy.sh'
