@@ -3,39 +3,34 @@ pipeline {
 
     stages {
         stage('Compile') {
+            steps {
             if(env.BRANCH_NAME=='master'){
             agent { label 'prod' }
-            steps {
+            
                 slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
                 sh 'sbt clean compile'
             }
-            }
             else{
-                steps {
                 slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
                 sh 'sbt clean compile'
             }
             }
         }
         stage('Publish') {
+            steps {
             if(env.BRANCH_NAME=='master'){
             agent { label 'prod' }
-            steps {
+            
                 // echo 'sbt docker:publish'
                 sh 'sbt docker:publish'
-            }
             }
             else{
-                steps {
                 // echo 'sbt docker:publish'
                 sh 'sbt docker:publish'
-            }
             }
         }
         stage('Deploy test'){
-            when {
-                branch 'test'
-            }
+            when {branch 'test'}
             environment {
                 DEPLOY_ENV = 'test'
                 KUBECONFIG = '/var/lib/jenkins/.kube/config.teamdigitale-staging'
