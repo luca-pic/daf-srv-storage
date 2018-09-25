@@ -31,6 +31,7 @@ spipeline {
             when {
                 branch 'master'
             }
+            agent { label 'prod' }
             environment {
                 DEPLOY_ENV = 'prod'
                 KUBECONFIG = '/var/lib/jenkins/.kube/config.teamdigitale-prod'
