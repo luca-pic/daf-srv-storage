@@ -29,6 +29,7 @@ pipeline {
                 sh 'sbt docker:publish'
             }
         }
+        }
         stage('Deploy test'){
             when {branch 'test'}
             environment {
@@ -63,3 +64,4 @@ pipeline {
         }
     }
 }
+
