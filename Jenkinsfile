@@ -39,7 +39,7 @@ pipeline {
             agent { label 'prod' }
             environment {
                 DEPLOY_ENV = 'prod'
-                KUBECONFIG = '~/.kube/config.teamdigitale-production'
+                KUBECONFIG = '/home/centos/.kube/config.teamdigitale-production'
             }
             steps {
                 sh 'whoami' 
