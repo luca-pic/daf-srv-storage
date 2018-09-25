@@ -3,8 +3,8 @@ pipeline {
 
     stages {
         stage('Compile') {
-            steps {
-                 when { not { branch 'master' } }
+            when { not { branch 'master' } }
+                steps {
                 slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
                 sh 'sbt clean compile'
             }
@@ -45,7 +45,7 @@ pipeline {
             when { branch 'master' }
             agent { label 'prod' }
             environment {
-                DEPLOY_ENV = 'prod'
+                DEPLOY_ENV = 'prod' 
                 KUBECONFIG = '/home/centos/.kube/config.teamdigitale-production'
             }
             steps {
