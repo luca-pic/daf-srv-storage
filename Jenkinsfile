@@ -4,20 +4,22 @@ pipeline {
     stages {
         stage('Compile') {
             steps {
+            script{    
             if(env.BRANCH_NAME=='master'){
-            agent { label 'prod' }
-            
+            agent { label 'prod' }            
                 slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
                 sh 'sbt clean compile'
             }
             else{
                 slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
                 sh 'sbt clean compile'
+            }
             }
             }
         }
         stage('Publish') {
             steps {
+            script{
             if(env.BRANCH_NAME=='master'){
             agent { label 'prod' }
             
@@ -27,6 +29,7 @@ pipeline {
             else{
                 // echo 'sbt docker:publish'
                 sh 'sbt docker:publish'
+            }
             }
         }
         }
