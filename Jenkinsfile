@@ -20,13 +20,11 @@ pipeline {
             when { branch 'master'}
             agent { label 'prod' }
             steps {
-                // echo 'sbt docker:publish'
                 sh 'sbt docker:publish'
             }
         }
         stage('Publish') {
             steps {
-                // echo 'sbt docker:publish'
                 sh 'sbt docker:publish'
             }
         }
