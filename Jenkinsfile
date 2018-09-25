@@ -42,8 +42,9 @@ pipeline {
                 KUBECONFIG = '~/.kube/config.teamdigitale-production'
             }
             steps {
-                sh 'whoami; pwd;
-                cd kubernetes; sh deploy.sh'
+                sh 'whoami' 
+                sh 'pwd'
+                sh 'cd kubernetes; sh deploy.sh'
                 slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}] deployed in '${env.DEPLOY_ENV}' https://cd.daf.teamdigitale.it/blue/organizations/jenkins/daf-srv-storage/activity")
             }
         }
