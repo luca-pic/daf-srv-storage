@@ -3,12 +3,17 @@ pipeline {
 
     stages {
         stage('Compile') {
+            agent { label 'prod' }
             steps {
                 slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
                 sh 'sbt clean compile'
             }
         }
         stage('Publish') {
+            when {
+                branch 'master'
+            }
+            agent { label 'prod' }
             steps {
                 // echo 'sbt docker:publish'
                 sh 'sbt docker:publish'
