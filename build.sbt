@@ -15,6 +15,9 @@
  */
 
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.{ Docker => DockerGoal }
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
+
+Seq(gitStampSettings: _*)
 
 organization := "it.gov.daf"
 
