@@ -2,22 +2,37 @@ pipeline {
     agent any
 
     stages {
-        stage('Compile') {
-            steps {
-                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
+        stage('Compile test') {
+            when { not { branch 'master' } }
+                steps {
+                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organization/jenkinss/daf-srv-storage/activity")
                 sh 'sbt clean compile'
             }
         }
-        stage('Publish') {
+        stage('Compile prod') {
+            when { branch 'master'}
+            agent { label 'prod' }
+            steps {
+                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkins/daf-srv-storage/activity")
+                sh 'sbt clean compile'
+            }
+        }
+        stage('Publish test') {
+            when { branch 'test' }
             steps {
                 // echo 'sbt docker:publish'
                 sh 'sbt docker:publish'
             }
         }
-        stage('Deploy test'){
-            when {
-                branch 'test'
+        stage('Publish prod') {
+            when { branch 'master'}
+            agent { label 'prod' }
+            steps {
+                sh 'sbt docker:publish'
             }
+        }
+        stage('Deploy test'){
+            when { branch 'test' }
             environment {
                 DEPLOY_ENV = 'test'
                 KUBECONFIG = '/var/lib/jenkins/.kube/config.teamdigitale-staging'
@@ -28,12 +43,11 @@ pipeline {
             }
         }
         stage('Deploy production') {
-            when {
-                branch 'master'
-            }
+            when { branch 'master' }
+            agent { label 'prod' }
             environment {
                 DEPLOY_ENV = 'prod'
-                KUBECONFIG = '/var/lib/jenkins/.kube/config.teamdigitale-prod'
+                KUBECONFIG = '/home/centos/.kube/config.teamdigitale-production'
             }
             steps {
                 sh 'cd kubernetes; sh deploy.sh'
