@@ -6,7 +6,7 @@ object Versions {
 
   // internal
 
-  lazy val common = "1.1.1-SNAPSHOT"
+  lazy val common = "1.1.3-SNAPSHOT"
 
   // external
 

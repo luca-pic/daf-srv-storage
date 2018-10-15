@@ -21,6 +21,8 @@ package daf.dataset.query
   */
 case class Query(select: SelectClause,
                  where: Option[WhereClause],
+                 join: Option[Seq[JoinClause]],
+                 union: Option[Seq[UnionClause]],
                  groupBy: Option[GroupByClause],
                  having: Option[HavingClause],
                  limit: Option[LimitClause]) {
@@ -34,6 +36,16 @@ case class Query(select: SelectClause,
   def hasHaving = having.isDefined
 
   def hasFilters = hasWhere || hasHaving
+
+  def hasJoin = join.forall { _.nonEmpty }
+
+  private def joinReferences = join.getOrElse { Seq.empty }.map { _.reference }.toSet
+
+  private def unionReferences = union.getOrElse { Seq.empty }.map { _.reference }.toSet
+
+  def unresolvedReferences = { joinReferences union unionReferences }.collect {
+    case UnresolvedReference(uri) => uri
+  }
 
 }
 
@@ -64,6 +76,20 @@ case class HavingClause(filter: FilterOperator) extends Clause
 // Limit
 
 case class LimitClause(limit: Int) extends Clause
+
+// Join
+
+sealed trait JoinClause extends Clause {
+  def reference: Reference
+  def on: FilterOperator
+}
+
+case class LeftJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
+case class RightJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
+case class OuterJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
+case class InnerJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
+
+case class UnionClause(reference: Reference, select: SelectClause, where: Option[WhereClause]) extends Clause
 
 // Operators
 
@@ -119,3 +145,13 @@ case class ValueColumn(value: Any) extends Column
 case object WildcardColumn extends Column
 
 case class AliasColumn(column: Column, alias: String) extends Column
+
+// Reference
+
+sealed trait Reference {
+  def target: String
+}
+
+case class UnresolvedReference(target: String) extends Reference
+
+case class ResolvedReference(target: String) extends Reference

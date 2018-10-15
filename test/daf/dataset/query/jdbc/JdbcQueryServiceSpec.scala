@@ -41,7 +41,7 @@ class JdbcQueryServiceSpec extends WordSpec with MustMatchers with BeforeAndAfte
   "A jdbc query service" must {
 
     "run queries" in  {
-      service.exec(JdbcQueries.select, "user", "").map { _.toCsv.toList }.get must be {
+      service.exec(JdbcQueries.select, "user", Map.empty, "").map { _.toCsv.toList }.get must be {
         List(
           """"COUNTRY", "COUNTS"""",
           """"Italy", 2""",
@@ -96,11 +96,13 @@ object JdbcQueries {
     where   = Some {
       WhereClause { Gt(NamedColumn("age"), ValueColumn(30)) }
     },
+    join    = None,
+    union   = None,
     groupBy = Some {
       GroupByClause { Seq(NamedColumn("country")) }
     },
-    having = None,
-    limit  = None
+    having  = None,
+    limit   = None
   )
 
 }

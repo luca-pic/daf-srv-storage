@@ -17,12 +17,16 @@
 package daf.dataset.query.jdbc
 
 import cats.syntax.traverse.toTraverseOps
+import cats.instances.option.catsStdInstancesForOption
 import cats.instances.list.catsStdInstancesForList
 import cats.instances.try_.catsStdInstancesForTry
 import cats.free.Free
 import cats.free.Free.catsFreeMonadForFree
 import daf.dataset.query._
 import doobie.util.fragment.Fragment
+import it.gov.daf.common.utils._
+
+import scala.util.Try
 
 /**
   * Creates `Writer` instances that read filter data from queries and composes over the `Writer` into SQL fragments.
@@ -30,10 +34,14 @@ import doobie.util.fragment.Fragment
 object FilterFragments {
 
   private def writeColumn(column: Column): Trampoline[String] = column match {
-    case ValueColumn(value: String)     => Free.pure { s"'${escape(value)}'" }
-    case ValueColumn(value)             => Free.pure { value.toString }
-    case NamedColumn(columnRegex(name)) => Free.pure { name }
-    case _                              => recursionError[String] { new IllegalArgumentException("Invalid operand encountered: columns or constants only are allowed") }
+    case ValueColumn(value: String)                         => Free.pure { s"'${escape(value)}'" }
+    case ValueColumn(value)                                 => Free.pure { value.toString }
+    case NamedColumn(columnRegex(name))                     => Free.pure { name }
+    case NamedColumn(qualifiedColumnRegex(qualifier, name)) => Free.pure { s"$qualifier.$name" }
+    case WildcardColumn                                     => Free.pure { "*" }
+    case _                                                  => recursionError[String] {
+      new IllegalArgumentException("Invalid operand encountered: columns or constants only are allowed")
+    }
   }
 
   private def _writeComparison(left: Column, right: Column)(f: (String, String) => String): Trampoline[String] = for {
@@ -61,6 +69,32 @@ object FilterFragments {
     case comparison: ComparisonOperator => Free.defer { writeComparisonOp(comparison) }
   }
 
+  private def writeReference(reference: Reference, tableRef: Map[String, String]) = reference match {
+    case UnresolvedReference(uri)  => Free.liftF[Try, String] { tableRef.get(uri).~>[Try] }
+    case ResolvedReference(target) => Free.pure[Try, String] { target }
+  }
+
+  private def writeJoinType(join: JoinClause) = join match {
+    case LeftJoinClause(_, _)  => Free.pure[Try, String] { "LEFT JOIN"  }
+    case InnerJoinClause(_, _) => Free.pure[Try, String] { "JOIN"       }
+    case OuterJoinClause(_, _) => Free.pure[Try, String] { "OUTER JOIN" }
+    case RightJoinClause(_, _) => Free.pure[Try, String] { "RIGHT JOIN" }
+  }
+
+  private def writeJoin(joinClause: JoinClause, alias: String, tableRef: Map[String, String]) = for {
+    join <- writeJoinType(joinClause)
+    ref  <- writeReference(joinClause.reference, tableRef)
+    cond <- writeFilterOp(joinClause.on)
+  } yield s"$join $ref $alias ON $cond"
+
+  private def writeUnion(unionClause: UnionClause, tableRef: Map[String, String]) = for {
+
+    ref    <- writeReference(unionClause.reference, tableRef)
+    select <- unionClause.select.columns.toList.traverse[Trampoline, String] { writeColumn }.map { _ mkString ", " }
+    filter <- unionClause.where.traverse[Trampoline, String] { clause => writeFilterOp(clause.filter) }
+    where  <- Free.pure { filter.map { cond => s" WHERE $cond" } getOrElse "" }
+  } yield s"SELECT $select FROM $ref$where"
+
   /**
     * Creates a [[QueryFragmentWriter]] for `WHERE` clauses in a query.
     */
@@ -73,6 +107,20 @@ object FilterFragments {
     */
   def having(havingClause: HavingClause) = QueryFragmentWriter.ask {
     writeFilterOp { havingClause.filter }.runTailRec.map { s => Fragment.const(s"HAVING $s") }
+  }
+
+  /**
+    * Creates a [[QueryFragmentWriter]] for `JOIN` clauses in a query.
+    */
+  def join(joinClause: JoinClause, alias: String, tableRef: Map[String, String]) = QueryFragmentWriter.ask {
+    writeJoin(joinClause, alias, tableRef).runTailRec.map { Fragment.const(_) }
+  }
+
+  /**
+    * Creates a [[QueryFragmentWriter]] for `UNION` clauses in a query.
+    */
+  def union(unionClause: UnionClause, tableRef: Map[String, String]) = QueryFragmentWriter.ask {
+    writeUnion(unionClause, tableRef).runTailRec.map { s => Fragment.const(s"UNION ALL $s") }
   }
 
 }
