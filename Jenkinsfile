@@ -1,11 +1,11 @@
 pipeline {
-    agent any
-
+    agent none
     stages {
         stage('Compile test') {
-            when { not { branch 'master' } }
+            when { branch 'test' }
+            agent { label 'Master' }
                 steps {
-                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organization/jenkinss/daf-srv-storage/activity")
+                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organization/jenkins/daf-srv-storage/activity")
                 sh 'sbt clean compile'
             }
         }
@@ -19,8 +19,8 @@ pipeline {
         }
         stage('Publish test') {
             when { branch 'test' }
+            agent { label 'Master' }
             steps {
-                // echo 'sbt docker:publish'
                 sh 'sbt docker:publish'
             }
         }
@@ -33,6 +33,7 @@ pipeline {
         }
         stage('Deploy test'){
             when { branch 'test' }
+            agent { label 'Master' }
             environment {
                 DEPLOY_ENV = 'test'
                 KUBECONFIG = '/var/lib/jenkins/.kube/config.teamdigitale-staging'
@@ -41,6 +42,8 @@ pipeline {
                 sh 'cd kubernetes; sh deploy.sh'
                 slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}] deployed in '${env.DEPLOY_ENV}' https://cd.daf.teamdigitale.it/blue/organizations/jenkins/daf-srv-storage/activity")
             }
+
+        }
         }
         stage('Deploy production') {
             when { branch 'master' }
