@@ -2,7 +2,7 @@ pipeline {
     agent none
     stages {
         stage('Compile test') {
-            when { branch 'test' }
+            when { branch 'dev' }
             agent { label 'Master' }
                 steps {
                 slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organization/jenkins/daf-srv-storage/activity")
@@ -18,7 +18,7 @@ pipeline {
             }
         }
         stage('Publish test') {
-            when { branch 'test' }
+            when { branch 'dev' }
             agent { label 'Master' }
             steps {
                 sh 'sbt docker:publish'
@@ -32,7 +32,7 @@ pipeline {
             }
         }
         stage('Deploy test') {
-            when { branch 'test' }
+            when { branch 'dev' }
             agent { label 'Master' }
             environment {
                 DEPLOY_ENV = 'test'
