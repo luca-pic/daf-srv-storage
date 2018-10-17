@@ -1,12 +1,12 @@
 object Versions {
 
-  lazy val defaultVersion = sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0.3")
+  lazy val defaultVersion = "1.0.3.1"
 
   lazy val isSnapshot = Versions.defaultVersion.endsWith("SNAPSHOT")
 
   // internal
 
-  lazy val common = sys.env.getOrElse("COMMON_VERSION", "1.0.9")
+  lazy val common = "1.0.9"
 
   // external
 

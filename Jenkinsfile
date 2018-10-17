@@ -1,19 +1,42 @@
 pipeline {
-    agent any
-
+    agent none
     stages {
-        stage('Test') {
-            when { not { branch 'master' } }
+        stage('Compile test') {
+            when { branch 'dev' }
+            agent { label 'Master' }
+                steps {
+                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organization/jenkins/daf-srv-storage/activity")
+                sh 'sbt clean compile'
+            }
+        }
+        stage('Compile prod') {
+            when { branch 'master'}
+            agent { label 'prod' }
+            steps {
+                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkins/daf-srv-storage/activity")
+                sh 'sbt clean compile'
+            }
+        }
+        stage('Publish test') {
+            when { branch 'dev' }
+            agent { label 'Master' }
+            steps {
+                sh 'sbt docker:publish'
+            }
+        }
+        stage('Publish prod') {
+            when { branch 'master'}
+            agent { label 'prod' }
+            steps {
+                sh 'sbt docker:publish'
+            }
+        }
+        stage('Deploy test') {
+            when { branch 'dev' }
+            agent { label 'Master' }
             environment {
                 DEPLOY_ENV = 'test'
                 KUBECONFIG = '/var/lib/jenkins/.kube/config.teamdigitale-staging'
-            }
-            steps {
-                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
-                sh 'sbt clean compile'
-            }
-            steps {
-                sh 'sbt docker:publish'
             }
             steps {
                 sh 'cd kubernetes; sh deploy.sh'
@@ -21,19 +44,12 @@ pipeline {
             }
 
         }
-        stage('Production') {
-            when { branch 'master'}
+        stage('Deploy production') {
+            when { branch 'master' }
             agent { label 'prod' }
             environment {
                 DEPLOY_ENV = 'prod'
                 KUBECONFIG = '/home/centos/.kube/config.teamdigitale-production'
-            }
-            steps {
-                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkinss/daf-srv-storage/activity")
-                sh 'sbt clean compile'
-            }
-            steps {
-                sh 'sbt docker:publish'
             }
             steps {
                 sh 'cd kubernetes; sh deploy.sh'
