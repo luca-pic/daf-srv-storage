@@ -75,7 +75,7 @@ spec:
           - "idm"
       containers:
       - name: storage-manager
-        image: nexus.daf.teamdigitale.it/daf-storage-manager:1.0.3.1
+        image: nexus.daf.teamdigitale.it/daf-storage-manager:1.0.3.2
         imagePullPolicy: Always
         env:
         - name: JAVA_OPTS
