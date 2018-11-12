@@ -87,4 +87,4 @@ fork in Test := true
 autoAPIMappings := true
 
 dependencyOverrides += "com.google.guava" % "guava" % "16.0.1" % "compile"
-dependencyOverrides += "org.codehaus.janino" % "janino" % "3.0.7"
+dependencyOverrides += "org.codehaus.janino" % "janino" % "3.0.0"
