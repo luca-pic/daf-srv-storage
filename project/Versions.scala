@@ -1,12 +1,12 @@
 object Versions {
 
-  lazy val defaultVersion = "1.0.4-SNAPSHOT"
+  lazy val defaultVersion = "1.0.4"
 
   lazy val isSnapshot = Versions.defaultVersion.endsWith("SNAPSHOT")
 
   // internal
 
-  lazy val common = "1.1.3-SNAPSHOT"
+  lazy val common = "1.1.2"
 
   // external
 
