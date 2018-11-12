@@ -28,12 +28,16 @@ object QueryFormats {
   implicit val reader: Reads[Query] = for {
     select  <- SelectClauseFormats.reader.optional("select")
     where   <- WhereClauseFormats.reader.optional("where")
+    join    <- JoinClauseFormats.reader.optional("join")
+    union   <- UnionClauseFormats.reader.optional("union")
     groupBy <- GroupByClauseFormats.reader.optional("groupBy")
     having  <- HavingClauseFormats.reader.optional("having").filterNot(havingWithoutGroupBy) { clause => clause.nonEmpty && groupBy.isEmpty }
     limit   <- LimitClauseFormats.reader.optional("limit")
   } yield Query(
     select  = select getOrElse SelectClause.*,
     where   = where,
+    join    = join,
+    union   = union,
     groupBy = groupBy,
     having  = having,
     limit   = limit

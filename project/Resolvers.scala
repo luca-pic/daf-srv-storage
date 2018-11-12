@@ -1,5 +1,5 @@
 import sbt._
-import Repositories.nexusUrl
+import Environment.nexusUrl
 
 object Resolvers {
 

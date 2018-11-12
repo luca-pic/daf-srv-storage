@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package daf.dataset.query.jdbc
+package daf.dataset.query.json
 
-import doobie.util.fragment.Fragment
+import daf.dataset.query._
+import play.api.libs.json._
 
-/**
-  * Creates `Writer` instances that read table names and composes over the `Writer` into SQL fragments.
-  */
-object TableFragments {
+object ResolvedReferenceFormats {
 
-  /**
-    * Creates a [[QueryFragmentWriter]] for `FROM` clauses in a query, validating against a `ColumnReference` instance.
-    */
-  def from(tableName: String): QueryFragmentWriter[Unit] = QueryFragmentWriter.tell { Fragment.const(s"FROM $tableName AS T1") }
+  val reader: Reads[Reference] = (__ \ "table").read[String].map { ResolvedReference }
+
+}
+
+object UnresolvedReferenceFormats {
+
+  val reader: Reads[Reference] = (__ \ "uri").read[String].map { UnresolvedReference }
+
+}
+
+object ReferenceFormats {
+
+  val reader: Reads[Reference] = UnresolvedReferenceFormats.reader
 
 }

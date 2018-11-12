@@ -1,19 +1,33 @@
 pipeline {
     agent none
     stages {
-        stage('Compile test') {
+        stage('Fill templates test') {
             when { branch 'dev' }
             agent { label 'Master' }
                 steps {
                 slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organization/jenkins/daf-srv-storage/activity")
-                sh 'sbt clean compile'
+                sh 'ansible-playbook ansible/main.yml --extra-vars "@/ansible/settings.yml"'
+            }
+        }
+        stage('Fill templates prod') {
+            when { branch 'master' }
+            agent { label 'prod' }
+                steps {
+                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organization/jenkins/daf-srv-storage/activity")
+                sh 'ansible-playbook ansible/main.yml --extra-vars "@/ansible/settings.yml"'
+            }
+        }
+        stage('Compile test') {
+            when { branch 'dev' }
+            agent { label 'Master' }
+                steps {
+                  sh 'sbt clean compile'
             }
         }
         stage('Compile prod') {
             when { branch 'master'}
             agent { label 'prod' }
             steps {
-                slackSend (message: "BUILD START: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' CHECK THE RESULT ON: https://cd.daf.teamdigitale.it/blue/organizations/jenkins/daf-srv-storage/activity")
                 sh 'sbt clean compile'
             }
         }
