@@ -58,8 +58,6 @@ object Versions {
 
   lazy val typesafeConfig = "1.3.1"
 
-  lazy val redis          = "3.8"
-
   def choose[A](whenSnapshot: => A, whenRelease: => A): A = if (isSnapshot) whenSnapshot else whenRelease
 
 }
