@@ -22,16 +22,27 @@ import play.api.libs.json._
 case class KeyValue(key: String, value: String)
 // Generic Key/Value pair object
 case class VocKeyValueSubtheme(key: String, value: String, keyTheme: String, valueTheme: Option[String])
+case class KeyValueArray(key: String, value: List[String])
 case class MetaCatalog(dataschema: DatasetCatalog, operational: Operational, dcatapit: Dataset)
-case class DatasetCatalog(avro: Avro, flatSchema: List[FlatSchema], kyloSchema: Option[String])
-case class Avro(namespace: String, `type`: String, name: String, aliases: Option[List[String]], fields: Option[List[Field]])
+case class DatasetCatalog(avro: Avro, flatSchema: List[FlatSchema], kyloSchema: Option[String], encoding: Option[String])
+case class Avro(namespace: String, `type`: String, name: String, aliases: Option[List[String]], fields: Option[List[Field]], separator: Option[String], property_hierarchy: Option[String])
 case class Field(name: String, `type`: String)
 case class FlatSchema(name: String, `type`: String, metadata: Option[Metadata])
-case class Metadata(desc: Option[String], field_type: Option[String], cat: Option[String], tag: Option[List[String]], required: Option[Int], semantics: Option[Semantic], constr: Option[List[Constr]])
+case class Metadata(desc: Option[String], field_type: Option[String], cat: Option[String], tag: Option[List[String]], required: Option[Int], semantics: Option[Semantic], constr: Option[List[Constr]], field_profile: Option[FieldProfile], format_std: Option[FormatStd], uniq_dim: Option[Boolean], is_createdate: Option[Boolean], is_updatedate: Option[Boolean], key: Option[Boolean], personal: Option[Personal], title: Option[String], `type`: Option[String])
+case class Personal(is_personal: Option[Boolean], cat: Option[String], processing: Option[String], is_analysis: Option[Boolean])
+case class FormatStd(name: Option[String], param: Option[List[KeyValue]], conv: Option[List[KeyValueArray]])
+case class FieldProfile(is_index: Option[Boolean], is_profile: Option[Boolean], standardization: Option[List[String]], entity_extr: Option[List[EntityExtraction]], validation: Option[List[String]])
+case class EntityExtraction(name: String, param: Option[Seq[KeyValue]])
 case class Lang(eng: Option[String], ita: Option[String])
-case class Semantic(id: String, context: Option[String])
+case class Semantic(id: String, context: Option[String], predicate: Option[String], subject: Option[String], id_label: Option[String], context_label: Option[String], uri_voc: Option[String], property_hierarchy: Option[List[String]], rdf_object: Option[String], field_group: Option[String], uri_property: Option[String])
 case class Constr(`type`: Option[String], param: Option[String])
-case class Operational(theme: String, subtheme: String, logical_uri: String, physical_uri: Option[String], is_std: Boolean, group_own: String, group_access: Option[List[GroupAccess]], std_schema: Option[StdSchema], read_type: String, georef: Option[List[GeoRef]], input_src: InputSrc, ingestion_pipeline: Option[List[String]], storage_info: Option[StorageInfo], dataset_type: String)
+case class Operational(theme: String, subtheme: String, logical_uri: Option[String], physical_uri: Option[String], is_std: Boolean, group_own: String, group_access: Option[List[GroupAccess]], std_schema: Option[StdSchema], read_type: String, georef: Option[List[GeoRef]], input_src: InputSrc, ingestion_pipeline: Option[List[IngestionPipeline]], storage_info: Option[StorageInfo], dataset_type: String, is_vocabulary: Option[Boolean], ext_opendata: Option[ExtOpenData], acl: Option[List[Acl]], file_type: Option[String], partitions: Option[List[Partitions]], dataset_proc: Option[DatasetProc])
+case class ExtOpenData(resourceId: String, name: String, url: String, resourceName: String, id: String, resourceUrl: String)
+case class IngestionPipeline(name: Option[String], param: Option[String])
+case class Acl(groupName: Option[String], groupType: Option[String], permission: Option[String])
+case class Partitions(name: String, field: String, formula: String)
+case class DatasetProc(dataset_type: String, cron: String, read_type: String, merge_strategy: String, scheduling_strategy: Option[String], partitions: Option[List[Partitions]])
+
 // Type associated with group_access
 case class GroupAccess(name: String, role: String)
 case class InputSrc(sftp: Option[List[SourceSftp]], srv_pull: Option[List[SourceSrvPull]], srv_push: Option[List[SourceSrvPush]], daf_dataset: Option[List[SourceDafDataset]])
@@ -42,7 +53,7 @@ case class SourceSrvPull(name: String, url: String, username: Option[String], pa
 // Info for the ingestion source of type pushing a service, that is we expose a service that is continuously listening
 case class SourceSrvPush(name: String, url: String, username: Option[String], password: Option[String], access_token: Option[String], param: Option[String])
 // It contains info to build the dataset based on already existing dataset in DAF.
-case class SourceDafDataset(dataset_uri: Option[List[String]], sql: Option[String], param: Option[String])
+case class SourceDafDataset(dataset_uri: Option[List[String]], sql: Option[String], param: Option[String], procedure: Option[String])
 case class StorageInfo(hdfs: Option[StorageHdfs], kudu: Option[StorageKudu], hbase: Option[StorageHbase], textdb: Option[StorageTextdb], mongo: Option[StorageMongo])
 // If compiled, will tell the ingestion manager to store the data into HDFS.
 case class StorageHdfs(name: String, path: Option[String], param: Option[String])
@@ -61,7 +72,7 @@ case class ConversionField(field_std: String, formula: String)
 case class CustomField(name: String)
 case class Error(code: Option[Int], message: String, fields: Option[String])
 case class Success(message: String, fields: Option[String])
-case class Dataset(alternate_identifier: Option[String], author: Option[String], frequency: Option[String], groups: Option[List[Group]], holder_identifier: Option[String], holder_name: Option[String], identifier: Option[String], license_id: Option[String], license_title: Option[String], modified: Option[String], name: String, notes: String, organization: Option[Organization], owner_org: Option[String], publisher_identifier: Option[String], publisher_name: Option[String], relationships_as_object: Option[List[Relationship]], relationships_as_subject: Option[List[Relationship]], resources: Option[List[Resource]], tags: Option[List[Tag]], theme: Option[String], title: Option[String])
+case class Dataset(alternate_identifier: Option[String], author: Option[String], frequency: Option[String], groups: Option[List[Group]], holder_identifier: Option[String], holder_name: Option[String], identifier: Option[String], license_id: Option[String], license_title: Option[String], modified: Option[String], name: String, notes: Option[String], organization: Option[Organization], owner_org: Option[String], publisher_identifier: Option[String], publisher_name: Option[String], relationships_as_object: Option[List[Relationship]], relationships_as_subject: Option[List[Relationship]], resources: Option[List[Resource]], tags: Option[List[Tag]], theme: Option[String], title: Option[String], privatex: Option[Boolean])
 case class Group(display_name: Option[String], description: Option[String], image_display_url: Option[String], title: Option[String], id: Option[String], name: Option[String])
 case class Organization(approval_status: Option[String], created: Option[String], description: Option[String], email: Option[String], id: Option[String], image_url: Option[String], is_organization: Option[Boolean], name: String, revision_id: Option[String], state: Option[String], title: Option[String], `type`: Option[String], users: Option[List[UserOrg]])
 case class Relationship(subject: Option[String], `object`: Option[String], `type`: Option[String], comment: Option[String])
@@ -96,16 +107,16 @@ object json {
     o => JsObject(Seq("dataschema" -> Json.toJson(o.dataschema), "operational" -> Json.toJson(o.operational), "dcatapit" -> Json.toJson(o.dcatapit)).filter(_._2 != JsNull))
   }
   implicit lazy val DatasetCatalogReads: Reads[DatasetCatalog] = Reads[DatasetCatalog] {
-    json => JsSuccess(DatasetCatalog((json \ "avro").as[Avro], (json \ "flatSchema").as[List[FlatSchema]],(json \ "kyloSchema").asOpt[String]))
+    json => JsSuccess(DatasetCatalog((json \ "avro").as[Avro], (json \ "flatSchema").as[List[FlatSchema]],(json \ "kyloSchema").asOpt[String], (json \ "encoding").asOpt[String]))
   }
   implicit lazy val DatasetCatalogWrites: Writes[DatasetCatalog] = Writes[DatasetCatalog] {
-    o => JsObject(Seq("avro" -> Json.toJson(o.avro), "flatSchema" -> Json.toJson(o.flatSchema), "kyloSchema" -> Json.toJson(o.kyloSchema)).filter(_._2 != JsNull))
+    o => JsObject(Seq("avro" -> Json.toJson(o.avro), "flatSchema" -> Json.toJson(o.flatSchema), "kyloSchema" -> Json.toJson(o.kyloSchema), "encoding" -> Json.toJson(o.encoding)).filter(_._2 != JsNull))
   }
   implicit lazy val AvroReads: Reads[Avro] = Reads[Avro] {
-    json => JsSuccess(Avro((json \ "namespace").as[String], (json \ "type").as[String], (json \ "name").as[String], (json \ "aliases").asOpt[List[String]], (json \ "fields").asOpt[List[Field]]))
+    json => JsSuccess(Avro((json \ "namespace").as[String], (json \ "type").as[String], (json \ "name").as[String], (json \ "aliases").asOpt[List[String]], (json \ "fields").asOpt[List[Field]], (json \ "separator").asOpt[String], (json \ "property_hierarchy").asOpt[String]))
   }
   implicit lazy val AvroWrites: Writes[Avro] = Writes[Avro] {
-    o => JsObject(Seq("namespace" -> Json.toJson(o.namespace), "type" -> Json.toJson(o.`type`), "name" -> Json.toJson(o.name), "aliases" -> Json.toJson(o.aliases), "fields" -> Json.toJson(o.fields)).filter(_._2 != JsNull))
+    o => JsObject(Seq("namespace" -> Json.toJson(o.namespace), "type" -> Json.toJson(o.`type`), "name" -> Json.toJson(o.name), "aliases" -> Json.toJson(o.aliases), "fields" -> Json.toJson(o.fields), "separator" -> Json.toJson(o.separator), "property_hierarchy" -> Json.toJson(o.property_hierarchy)).filter(_._2 != JsNull))
   }
   implicit lazy val FieldReads: Reads[Field] = Reads[Field] {
     json => JsSuccess(Field((json \ "name").as[String], (json \ "type").as[String]))
@@ -120,10 +131,40 @@ object json {
     o => JsObject(Seq("name" -> Json.toJson(o.name), "type" -> Json.toJson(o.`type`), "metadata" -> Json.toJson(o.metadata)).filter(_._2 != JsNull))
   }
   implicit lazy val MetadataReads: Reads[Metadata] = Reads[Metadata] {
-    json => JsSuccess(Metadata((json \ "desc").asOpt[String], (json \ "field_type").asOpt[String], (json \ "cat").asOpt[String], (json \ "tag").asOpt[List[String]], (json \ "required").asOpt[Int], (json \ "semantics").asOpt[Semantic], (json \ "constr").asOpt[List[Constr]]))
+    json => JsSuccess(Metadata((json \ "desc").asOpt[String], (json \ "field_type").asOpt[String], (json \ "cat").asOpt[String], (json \ "tag").asOpt[List[String]], (json \ "required").asOpt[Int], (json \ "semantics").asOpt[Semantic], (json \ "constr").asOpt[List[Constr]], (json \ "field_profile").asOpt[FieldProfile], (json \ "format_std").asOpt[FormatStd], (json \ "uniq_dim").asOpt[Boolean], (json \ "is_created").asOpt[Boolean], (json \ "is_updatedate").asOpt[Boolean], (json \ "key").asOpt[Boolean], (json \ "personal").asOpt[Personal], (json \ "title").asOpt[String], (json \ "`type`").asOpt[String]))
   }
   implicit lazy val MetadataWrites: Writes[Metadata] = Writes[Metadata] {
-    o => JsObject(Seq("desc" -> Json.toJson(o.desc), "field_type" -> Json.toJson(o.field_type), "cat" -> Json.toJson(o.cat), "tag" -> Json.toJson(o.tag), "required" -> Json.toJson(o.required), "semantics" -> Json.toJson(o.semantics), "constr" -> Json.toJson(o.constr)).filter(_._2 != JsNull))
+    o => JsObject(Seq("desc" -> Json.toJson(o.desc), "field_type" -> Json.toJson(o.field_type), "cat" -> Json.toJson(o.cat), "tag" -> Json.toJson(o.tag), "required" -> Json.toJson(o.required), "semantics" -> Json.toJson(o.semantics), "constr" -> Json.toJson(o.constr), "field_profile" -> Json.toJson(o.field_profile), "format_std" -> Json.toJson(o.format_std), "uniq_dim" -> Json.toJson(o.uniq_dim), "is_created" -> Json.toJson(o.is_createdate), "is_updatedate" -> Json.toJson(o.is_updatedate), "key" -> Json.toJson(o.key), "personal" -> Json.toJson(o.personal), "title" -> Json.toJson(o.title), "`type`" -> Json.toJson(o.`type`)).filter(_._2 != JsNull))
+  }
+  implicit lazy val FieldProfileReads: Reads[FieldProfile] = Reads[FieldProfile] {
+    json => JsSuccess(FieldProfile((json \ "is_index").asOpt[Boolean], (json \ "is_profile").asOpt[Boolean], (json \ "standardization").asOpt[List[String]], (json \ "entity_extr").asOpt[List[EntityExtraction]], (json \ "validation").asOpt[List[String]]))
+  }
+  implicit lazy val FieldProfileWrites: Writes[FieldProfile] = Writes[FieldProfile] {
+    o => JsObject(Seq("is_index" -> Json.toJson(o.is_index), "is_profile" -> Json.toJson(o.is_profile), "standardization" -> Json.toJson(o.standardization), "entity_extr" -> Json.toJson(o.entity_extr), "validation" -> Json.toJson(o.validation)))
+  }
+  implicit lazy val EntityExtractionReads: Reads[EntityExtraction] = Reads[EntityExtraction] {
+    json => JsSuccess(EntityExtraction((json \ "name").as[String], (json \ "param").asOpt[Seq[KeyValue]]))
+  }
+  implicit lazy val EntityExtractionWrites: Writes[EntityExtraction] = Writes[EntityExtraction] {
+    o => JsObject(Seq("name" -> Json.toJson(o.name), "param" -> Json.toJson(o.param)))
+  }
+  implicit lazy val FormatStdReads: Reads[FormatStd] = Reads[FormatStd] {
+    json => JsSuccess(FormatStd((json \ "name").asOpt[String], (json \ "param").asOpt[List[KeyValue]], (json \ "conv").asOpt[List[KeyValueArray]]))
+  }
+  implicit lazy val FormatStdWrites: Writes[FormatStd] = Writes[FormatStd] {
+    o => JsObject(Seq("name" -> Json.toJson(o.name), "param" -> Json.toJson(o.param), "conv" -> Json.toJson(o.conv)))
+  }
+  implicit lazy val PersonalReads: Reads[Personal] = Reads[Personal] {
+    json => JsSuccess(Personal((json \ "is_personal").asOpt[Boolean], (json \ "cat").asOpt[String], (json \ "processing").asOpt[String], (json \ "is_analysis").asOpt[Boolean]))
+  }
+  implicit lazy val PersonalWrites: Writes[Personal] = Writes[Personal] {
+    o => JsObject(Seq("is_personal" -> Json.toJson(o.is_personal), "cat" -> Json.toJson(o.cat), "processing" -> Json.toJson(o.processing), "is_analysis" -> Json.toJson(o.is_analysis)))
+  }
+  implicit lazy val KeyValueArrayReads: Reads[KeyValueArray] = Reads[KeyValueArray] {
+    json => JsSuccess(KeyValueArray((json \ "key").as[String], (json \ "value").as[List[String]]))
+  }
+  implicit lazy val KeyValueArrayWrites: Writes[KeyValueArray] = Writes[KeyValueArray] {
+    o => JsObject(Seq("key" -> Json.toJson(o.key), "value" -> Json.toJson(o.value)))
   }
   implicit lazy val LangReads: Reads[Lang] = Reads[Lang] {
     json => JsSuccess(Lang((json \ "eng").asOpt[String], (json \ "ita").asOpt[String]))
@@ -132,10 +173,10 @@ object json {
     o => JsObject(Seq("eng" -> Json.toJson(o.eng), "ita" -> Json.toJson(o.ita)).filter(_._2 != JsNull))
   }
   implicit lazy val SemanticReads: Reads[Semantic] = Reads[Semantic] {
-    json => JsSuccess(Semantic((json \ "id").as[String], (json \ "context").asOpt[String]))
+    json => JsSuccess(Semantic((json \ "id").as[String], (json \ "context").asOpt[String], (json \ "predicate").asOpt[String], (json \ "subject").asOpt[String], (json \ "id_label").asOpt[String], (json \ "context_label").asOpt[String], (json \ "uri_voc").asOpt[String], (json \ "property_hierarchy").asOpt[List[String]], (json \ "rdf_object").asOpt[String], (json \ "field_group").asOpt[String], (json \ "uri_property").asOpt[String]))
   }
   implicit lazy val SemanticWrites: Writes[Semantic] = Writes[Semantic] {
-    o => JsObject(Seq("id" -> Json.toJson(o.id), "context" -> Json.toJson(o.context)).filter(_._2 != JsNull))
+    o => JsObject(Seq("id" -> Json.toJson(o.id), "context" -> Json.toJson(o.context), "predicate" -> Json.toJson(o.predicate), "subject" -> Json.toJson(o.subject), "id_label" -> Json.toJson(o.id_label), "context_label" -> Json.toJson(o.context_label), "uri_voc" -> Json.toJson(o.uri_voc), "property_hierarchy" -> Json.toJson(o.property_hierarchy), "rdf_object" -> Json.toJson(o.rdf_object), "field_group" -> Json.toJson(o.field_group), "uri_property" -> Json.toJson(o.uri_property)).filter(_._2 != JsNull))
   }
   implicit lazy val ConstrReads: Reads[Constr] = Reads[Constr] {
     json => JsSuccess(Constr((json \ "type").asOpt[String], (json \ "param").asOpt[String]))
@@ -144,10 +185,40 @@ object json {
     o => JsObject(Seq("type" -> Json.toJson(o.`type`), "param" -> Json.toJson(o.param)).filter(_._2 != JsNull))
   }
   implicit lazy val OperationalReads: Reads[Operational] = Reads[Operational] {
-    json => JsSuccess(Operational((json \ "theme").as[String], (json \ "subtheme").as[String], (json \ "logical_uri").as[String], (json \ "physical_uri").asOpt[String], (json \ "is_std").as[Boolean], (json \ "group_own").as[String], (json \ "group_access").asOpt[List[GroupAccess]], (json \ "std_schema").asOpt[StdSchema], (json \ "read_type").as[String], (json \ "georef").asOpt[List[GeoRef]], (json \ "input_src").as[InputSrc], (json \ "ingestion_pipeline").asOpt[List[String]], (json \ "storage_info").asOpt[StorageInfo], (json \ "dataset_type").as[String]))
+    json => JsSuccess(Operational((json \ "theme").as[String], (json \ "subtheme").as[String], (json \ "logical_uri").asOpt[String], (json \ "physical_uri").asOpt[String], (json \ "is_std").as[Boolean], (json \ "group_own").as[String], (json \ "group_access").asOpt[List[GroupAccess]], (json \ "std_schema").asOpt[StdSchema], (json \ "read_type").as[String], (json \ "georef").asOpt[List[GeoRef]], (json \ "input_src").as[InputSrc], (json \ "ingestion_pipeline").asOpt[List[IngestionPipeline]], (json \ "storage_info").asOpt[StorageInfo], (json \ "dataset_type").as[String], (json \ "is_vocabulary").asOpt[Boolean], (json \ "ext_opendata").asOpt[ExtOpenData], (json \ "acl").asOpt[List[Acl]], (json \ "file_type").asOpt[String], (json \ "partitions").asOpt[List[Partitions]], (json \ "dataset_proc").asOpt[DatasetProc]))
   }
   implicit lazy val OperationalWrites: Writes[Operational] = Writes[Operational] {
-    o => JsObject(Seq("theme" -> Json.toJson(o.theme), "subtheme" -> Json.toJson(o.subtheme), "logical_uri" -> Json.toJson(o.logical_uri), "physical_uri" -> Json.toJson(o.physical_uri), "is_std" -> Json.toJson(o.is_std), "group_own" -> Json.toJson(o.group_own), "group_access" -> Json.toJson(o.group_access), "std_schema" -> Json.toJson(o.std_schema), "read_type" -> Json.toJson(o.read_type), "georef" -> Json.toJson(o.georef), "input_src" -> Json.toJson(o.input_src), "ingestion_pipeline" -> Json.toJson(o.ingestion_pipeline), "storage_info" -> Json.toJson(o.storage_info), "dataset_type" -> Json.toJson(o.dataset_type)).filter(_._2 != JsNull))
+    o => JsObject(Seq("theme" -> Json.toJson(o.theme), "subtheme" -> Json.toJson(o.subtheme), "logical_uri" -> Json.toJson(o.logical_uri), "physical_uri" -> Json.toJson(o.physical_uri), "is_std" -> Json.toJson(o.is_std), "group_own" -> Json.toJson(o.group_own), "group_access" -> Json.toJson(o.group_access), "std_schema" -> Json.toJson(o.std_schema), "read_type" -> Json.toJson(o.read_type), "georef" -> Json.toJson(o.georef), "input_src" -> Json.toJson(o.input_src), "ingestion_pipeline" -> Json.toJson(o.ingestion_pipeline), "storage_info" -> Json.toJson(o.storage_info), "dataset_type" -> Json.toJson(o.dataset_type), "is_vocabulary" -> Json.toJson(o.is_vocabulary), "ext_opendata" -> Json.toJson(o.ext_opendata), "acl" -> Json.toJson(o.acl), "file_type" -> Json.toJson(o.file_type), "partitions" -> Json.toJson(o.partitions), "dataset_proc" -> Json.toJson(o.dataset_proc)).filter(_._2 != JsNull))
+  }
+  implicit lazy val ExtOpenDataReads: Reads[ExtOpenData] = Reads[ExtOpenData] {
+    json => JsSuccess(ExtOpenData((json \ "resourceId").as[String], (json \ "name").as[String], (json \ "url").as[String], (json \ "resourceName").as[String], (json \ "id").as[String], (json \ "resourceUrl").as[String]))
+  }
+  implicit lazy val ExtOpenDataWrites: Writes[ExtOpenData] = Writes[ExtOpenData] {
+    o => JsObject(Seq("resourceId" -> Json.toJson(o.resourceId), "name" -> Json.toJson(o.name), "url" -> Json.toJson(o.url), "resourceName" -> Json.toJson(o.resourceName), "id" -> Json.toJson(o.id), "resourceUrl" -> Json.toJson(o.resourceUrl)))
+  }
+  implicit lazy val IngestionPipelineReads: Reads[IngestionPipeline] = Reads[IngestionPipeline] {
+    json => JsSuccess(IngestionPipeline((json \ "name").asOpt[String], (json \ "param").asOpt[String]))
+  }
+  implicit lazy val IngestionPipelineWrites: Writes[IngestionPipeline] = Writes[IngestionPipeline] {
+    o => JsObject(Seq("name" -> Json.toJson(o.name), "param" -> Json.toJson(o.param)))
+  }
+  implicit lazy val AclReads: Reads[Acl] = Reads[Acl] {
+    json => JsSuccess(Acl((json \ "groupName").asOpt[String], (json \ "groupType").asOpt[String], (json \ "permission").asOpt[String]))
+  }
+  implicit lazy val AclWrites: Writes[Acl] = Writes[Acl] {
+    o => JsObject(Seq("groupName" -> Json.toJson(o.groupName), "groupType" -> Json.toJson(o.groupType), "permission" -> Json.toJson(o.permission)))
+  }
+  implicit lazy val PartitionsReads: Reads[Partitions] = Reads[Partitions] {
+    json => JsSuccess(Partitions((json \ "name").as[String], (json \ "field").as[String], (json \ "formula").as[String]))
+  }
+  implicit lazy val PartitionsWrites: Writes[Partitions] = Writes[Partitions] {
+    o => JsObject(Seq("name" -> Json.toJson(o.name), "field" -> Json.toJson(o.field), "formula" -> Json.toJson(o.formula)))
+  }
+  implicit lazy val DatasetProcReads: Reads[DatasetProc] = Reads[DatasetProc] {
+    json => JsSuccess(DatasetProc((json \ "dataset_type").as[String], (json \ "cron").as[String], (json \ "read_type").as[String], (json \ "merge_strategy").as[String], (json \ "scheduling_strategy").asOpt[String], (json \ "partitions").asOpt[List[Partitions]]))
+  }
+  implicit lazy val DatasetProcWrites: Writes[DatasetProc] = Writes[DatasetProc] {
+    o => JsObject(Seq("dataset_type" -> Json.toJson(o.dataset_type), "cron" -> Json.toJson(o.cron), "read_type" -> Json.toJson(o.read_type), "merge_strategy" -> Json.toJson(o.merge_strategy), "scheduling_strategy" -> Json.toJson(o.scheduling_strategy), "partitions" -> Json.toJson(o.partitions)))
   }
   implicit lazy val GroupAccessReads: Reads[GroupAccess] = Reads[GroupAccess] {
     json => JsSuccess(GroupAccess((json \ "name").as[String], (json \ "role").as[String]))
@@ -180,10 +251,10 @@ object json {
     o => JsObject(Seq("name" -> Json.toJson(o.name), "url" -> Json.toJson(o.url), "username" -> Json.toJson(o.username), "password" -> Json.toJson(o.password), "access_token" -> Json.toJson(o.access_token), "param" -> Json.toJson(o.param)).filter(_._2 != JsNull))
   }
   implicit lazy val SourceDafDatasetReads: Reads[SourceDafDataset] = Reads[SourceDafDataset] {
-    json => JsSuccess(SourceDafDataset((json \ "dataset_uri").asOpt[List[String]], (json \ "sql").asOpt[String], (json \ "param").asOpt[String]))
+    json => JsSuccess(SourceDafDataset((json \ "dataset_uri").asOpt[List[String]], (json \ "sql").asOpt[String], (json \ "param").asOpt[String], (json \ "procedure").asOpt[String]))
   }
   implicit lazy val SourceDafDatasetWrites: Writes[SourceDafDataset] = Writes[SourceDafDataset] {
-    o => JsObject(Seq("dataset_uri" -> Json.toJson(o.dataset_uri), "sql" -> Json.toJson(o.sql), "param" -> Json.toJson(o.param)).filter(_._2 != JsNull))
+    o => JsObject(Seq("dataset_uri" -> Json.toJson(o.dataset_uri), "sql" -> Json.toJson(o.sql), "param" -> Json.toJson(o.param), "procedure" -> Json.toJson(o.procedure)).filter(_._2 != JsNull))
   }
   implicit lazy val StorageInfoReads: Reads[StorageInfo] = Reads[StorageInfo] {
     json => JsSuccess(StorageInfo((json \ "hdfs").asOpt[StorageHdfs], (json \ "kudu").asOpt[StorageKudu], (json \ "hbase").asOpt[StorageHbase], (json \ "textdb").asOpt[StorageTextdb], (json \ "mongo").asOpt[StorageMongo]))
@@ -264,10 +335,10 @@ object json {
     o => JsObject(Seq("message" -> Json.toJson(o.message), "fields" -> Json.toJson(o.fields)).filter(_._2 != JsNull))
   }
   implicit lazy val DatasetReads: Reads[Dataset] = Reads[Dataset] {
-    json => JsSuccess(Dataset((json \ "alternate_identifier").asOpt[String], (json \ "author").asOpt[String], (json \ "frequency").asOpt[String], (json \ "groups").asOpt[List[Group]], (json \ "holder_identifier").asOpt[String], (json \ "holder_name").asOpt[String], (json \ "identifier").asOpt[String], (json \ "license_id").asOpt[String], (json \ "license_title").asOpt[String], (json \ "modified").asOpt[String], (json \ "name").as[String], (json \ "notes").as[String], (json \ "organization").asOpt[Organization], (json \ "owner_org").asOpt[String], (json \ "publisher_identifier").asOpt[String], (json \ "publisher_name").asOpt[String], (json \ "relationships_as_object").asOpt[List[Relationship]], (json \ "relationships_as_subject").asOpt[List[Relationship]], (json \ "resources").asOpt[List[Resource]], (json \ "tags").asOpt[List[Tag]], (json \ "theme").asOpt[String], (json \ "title").asOpt[String]))
+    json => JsSuccess(Dataset((json \ "alternate_identifier").asOpt[String], (json \ "author").asOpt[String], (json \ "frequency").asOpt[String], (json \ "groups").asOpt[List[Group]], (json \ "holder_identifier").asOpt[String], (json \ "holder_name").asOpt[String], (json \ "identifier").asOpt[String], (json \ "license_id").asOpt[String], (json \ "license_title").asOpt[String], (json \ "modified").asOpt[String], (json \ "name").as[String], (json \ "notes").asOpt[String], (json \ "organization").asOpt[Organization], (json \ "owner_org").asOpt[String], (json \ "publisher_identifier").asOpt[String], (json \ "publisher_name").asOpt[String], (json \ "relationships_as_object").asOpt[List[Relationship]], (json \ "relationships_as_subject").asOpt[List[Relationship]], (json \ "resources").asOpt[List[Resource]], (json \ "tags").asOpt[List[Tag]], (json \ "theme").asOpt[String], (json \ "title").asOpt[String], (json \ "privatex").asOpt[Boolean]))
   }
   implicit lazy val DatasetWrites: Writes[Dataset] = Writes[Dataset] {
-    o => JsObject(Seq("alternate_identifier" -> Json.toJson(o.alternate_identifier), "author" -> Json.toJson(o.author), "frequency" -> Json.toJson(o.frequency), "groups" -> Json.toJson(o.groups), "holder_identifier" -> Json.toJson(o.holder_identifier), "holder_name" -> Json.toJson(o.holder_name), "identifier" -> Json.toJson(o.identifier), "license_id" -> Json.toJson(o.license_id), "license_title" -> Json.toJson(o.license_title), "modified" -> Json.toJson(o.modified), "name" -> Json.toJson(o.name), "notes" -> Json.toJson(o.notes), "organization" -> Json.toJson(o.organization), "owner_org" -> Json.toJson(o.owner_org), "publisher_identifier" -> Json.toJson(o.publisher_identifier), "publisher_name" -> Json.toJson(o.publisher_name), "relationships_as_object" -> Json.toJson(o.relationships_as_object), "relationships_as_subject" -> Json.toJson(o.relationships_as_subject), "resources" -> Json.toJson(o.resources), "tags" -> Json.toJson(o.tags), "theme" -> Json.toJson(o.theme), "title" -> Json.toJson(o.title)).filter(_._2 != JsNull))
+    o => JsObject(Seq("alternate_identifier" -> Json.toJson(o.alternate_identifier), "author" -> Json.toJson(o.author), "frequency" -> Json.toJson(o.frequency), "groups" -> Json.toJson(o.groups), "holder_identifier" -> Json.toJson(o.holder_identifier), "holder_name" -> Json.toJson(o.holder_name), "identifier" -> Json.toJson(o.identifier), "license_id" -> Json.toJson(o.license_id), "license_title" -> Json.toJson(o.license_title), "modified" -> Json.toJson(o.modified), "name" -> Json.toJson(o.name), "notes" -> Json.toJson(o.notes), "organization" -> Json.toJson(o.organization), "owner_org" -> Json.toJson(o.owner_org), "publisher_identifier" -> Json.toJson(o.publisher_identifier), "publisher_name" -> Json.toJson(o.publisher_name), "relationships_as_object" -> Json.toJson(o.relationships_as_object), "relationships_as_subject" -> Json.toJson(o.relationships_as_subject), "resources" -> Json.toJson(o.resources), "tags" -> Json.toJson(o.tags), "theme" -> Json.toJson(o.theme), "title" -> Json.toJson(o.title), "privatex" -> Json.toJson(o.privatex)).filter(_._2 != JsNull))
   }
   implicit lazy val GroupReads: Reads[Group] = Reads[Group] {
     json => JsSuccess(Group((json \ "display_name").asOpt[String], (json \ "description").asOpt[String], (json \ "image_display_url").asOpt[String], (json \ "title").asOpt[String], (json \ "id").asOpt[String], (json \ "name").asOpt[String]))

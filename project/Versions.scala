@@ -1,6 +1,6 @@
 object Versions {
 
-  lazy val defaultVersion = "1.0.4-SNAPSHOT"
+  lazy val defaultVersion = "1.0.5-SNAPSHOT"
 
   lazy val isSnapshot = Versions.defaultVersion.endsWith("SNAPSHOT")
 
@@ -57,6 +57,8 @@ object Versions {
   lazy val swaggerUI      = "3.0.7"
 
   lazy val typesafeConfig = "1.3.1"
+
+  lazy val redis          = "3.8"
 
   def choose[A](whenSnapshot: => A, whenRelease: => A): A = if (isSnapshot) whenSnapshot else whenRelease
 
