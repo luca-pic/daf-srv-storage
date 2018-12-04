@@ -1,6 +1,6 @@
 object Versions {
 
-  lazy val defaultVersion = "1.0.4-SNAPSHOT"
+  lazy val defaultVersion = "1.0.5-SNAPSHOT"
 
   lazy val isSnapshot = Versions.defaultVersion.endsWith("SNAPSHOT")
 

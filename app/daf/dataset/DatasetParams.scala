@@ -126,7 +126,7 @@ object DatasetParams {
     extraParams <- createParams("separator" -> separator, "theme" -> theme, "subTheme" -> subTheme)
   } yield FileDatasetParams(
     path        = path,
-    catalogUri  = catalog.operational.logical_uri,
+    catalogUri  = catalog.operational.logical_uri.get,
     format      = format,
     extraParams = extraParams
   )
@@ -134,7 +134,7 @@ object DatasetParams {
   private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = for {
     table       <- readTable(catalog, kuduInfo)
     extraParams <- createParams("separator" -> Some(","))
-  } yield KuduDatasetParams(table, catalog.operational.logical_uri, extraParams)
+  } yield KuduDatasetParams(table, catalog.operational.logical_uri.get, extraParams)
 
   def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs orElse info.kudu } match {
     case Some(hdfsInfo: StorageHdfs) => fromHdfs(catalog, hdfsInfo)
