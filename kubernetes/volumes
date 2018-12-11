@@ -1,0 +1,15 @@
+[   /home/gruggiero/git/teamdigitale/dhall-kubernetes/default/io.k8s.api.core.v1.Volume.dhall
+    { name = "daf-keytab" }
+  ⫽ { secret =
+        Some
+        (   /home/gruggiero/git/teamdigitale/dhall-kubernetes/default/io.k8s.api.core.v1.SecretVolumeSource.dhall
+          ⫽ { secretName =
+                Some "keytab"
+            , items =
+                Some
+                [ ./../../default/io.k8s.api.core.v1.KeyToPath.dhall ./it.dhall
+                ]
+            }
+        )
+    }
+] : List ./../../types/io.k8s.api.core.v1.Volume.dhall

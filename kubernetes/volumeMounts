@@ -1,0 +1,3 @@
+[ { name = "config-volume", mountPath = "/opt/docker/conf/app",  subPath = None Text, readOnly = None Bool }
+, { name = "glusterfsvol", mountPath = "/opt/docker/conf/logback.xml", subPath = Some "storage-manager/conf/logback.xml", readOnly = Some True }
+]
