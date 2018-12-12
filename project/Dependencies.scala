@@ -192,6 +192,8 @@ object Dependencies {
 
     val h2            = "com.h2database"         % "h2"                  % Versions.h2            % Test
 
+    val redis         = "net.debasishg"         %% "redisclient"         % Versions.redis
+
     val all = {
       logback       +:
       playSpecs2    +:
@@ -202,6 +204,7 @@ object Dependencies {
       dockerJava    +:
       dockerJava    +:
       h2            +:
+      redis         +:
       (hbase.all ++ hadoop.all ++ spark.all ++ kudu.all)
     }.map { Exclusions.slf4j } :+
     slf4j :+

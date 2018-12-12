@@ -120,3 +120,17 @@ object ClauseFormats {
 
 }
 
+object ClauseFormatWrites {
+
+  def writerLimit(o: Option[LimitClause]) = {
+    o match {
+      case Some(x) => Json.toJson(x.limit)
+      case None => JsNull
+    }
+  }
+
+  def writerSelect(o: SelectClause) = {
+    JsArray.apply(o.columns.map(x => "name" -> Json.toJson(x)))
+  }
+}
+

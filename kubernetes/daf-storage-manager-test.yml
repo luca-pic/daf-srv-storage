@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: storage-manager
+  name: storage-manager-redis
   labels:
-    app: storage-manager
+    app: storage-manager-redis
 spec:
   type: NodePort
   ports:
@@ -11,22 +11,26 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: storage-manager
+    app: storage-manager-redis
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: storage-manager-deployment
+  name: storage-manager-redis-deployment
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: storage-manager
+        app: storage-manager-redis
     spec:
+      hostAliases:
+      - ip: "192.168.20.53"
+        hostnames:
+          - "idm.teamdigitale.test"
       containers:
-      - name: storage-manager
-        image: nexus.teamdigitale.test/daf-storage-manager:1.0.4-SNAPSHOT
+      - name: storage-manager-redis
+        image: nexus.teamdigitale.test/daf-storage-manager-redis:1.0.6-SNAPSHOT
         imagePullPolicy: Always
         env:
         - name: JAVA_OPTS
@@ -83,16 +87,18 @@ spec:
           subPath: cloudera/hbase-conf
           readOnly: true
         # logging
-        - name: glusterfsvol
-          mountPath: /opt/docker/logs
-          subPath: storage-manager/logs
-        # kerberos
+#        - name: glusterfsvol
+#          mountPath: /opt/docker/logs
+#          subPath: storage-manager/logs
+#         kerberos
         - name: daf-keytab
           mountPath: /opt/docker/conf/daf.keytab
           subPath: keytab/daf.keytab
           readOnly: true
         - name: krb5conf
+#        - name: config-volume-kerb
           mountPath: /etc/krb5.conf
+#          mountPath: /etc/extKerberosConfig
         # ssl
         - name: glusterfsvol
           mountPath: /opt/docker/cert/master-impala.jks
@@ -120,6 +126,9 @@ spec:
       - name: config-volume
         configMap:
           name: storage-manager-conf
+#      - name: config-volume-kerb
+#        configMap:
+#          name: krb5-conf
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim

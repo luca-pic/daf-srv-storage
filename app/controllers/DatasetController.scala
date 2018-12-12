@@ -24,28 +24,30 @@ import cats.instances.future.catsStdInstancesForFuture
 import cats.instances.try_.catsStdInstancesForTry
 import cats.instances.list.catsStdInstancesForList
 import cats.syntax.traverse.toTraverseOps
-import config.{ FileExportConfig, ImpalaConfig }
+import config.{FileExportConfig, ImpalaConfig, RedisConfig}
 import daf.catalogmanager.CatalogManagerClient
 import daf.dataset.export.FileExportService
 import daf.dataset._
 import daf.dataset.query.jdbc.JdbcQueryService
-import daf.dataset.query.{ Query, UnresolvedReference }
+import daf.dataset.query.json.QueryFormats
+import daf.dataset.query.{Query, UnresolvedReference}
 import daf.dataset.query.json.QueryFormats.reader
 import daf.error.InvalidRequestException
-import daf.instances.{ FileSystemInstance, ImpalaTransactorInstance }
+import daf.instances.{FileSystemInstance, ImpalaTransactorInstance}
 import daf.web._
-import daf.filesystem.{ DownloadableFormats, FileDataFormat }
-import it.gov.daf.common.config.{ ConfigReadException, Read }
-import org.apache.hadoop.conf.{ Configuration => HadoopConfiguration }
+import daf.filesystem.{DownloadableFormats, FileDataFormat}
+import it.gov.daf.common.config.{ConfigReadException, Read}
+import org.apache.hadoop.conf.{Configuration => HadoopConfiguration}
 import org.apache.hadoop.fs.FileSystem
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 class DatasetController @Inject()(configuration: Configuration,
                                   playSessionStore: PlaySessionStore,
@@ -78,12 +80,18 @@ class DatasetController @Inject()(configuration: Configuration,
     case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
   }
 
+//  protected val redisConfig = RedisConfig.reader.read(this.configuration) match {
+//    case Success(config) => config
+//    case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
+//  }
+
   private def defaultLimit = Read.int { "daf.row_limit" }.read(configuration) getOrElse None
 
   protected val datasetService    = new DatasetService(configuration.underlying)
   protected val queryService      = new JdbcQueryService(impalaConfig, defaultLimit) with ImpalaTransactorInstance
   protected val fileExportService = new FileExportService(exportConfig, kuduMaster, defaultLimit)
   protected val downloadService   = new DownloadService(kuduMaster)
+//  protected val redisClient       = new RedisService(redisConfig)
 
   protected val catalogClient = CatalogManagerClient.fromConfig(configuration)
 
@@ -137,11 +145,25 @@ class DatasetController @Inject()(configuration: Configuration,
   }
 
   def queryDataset(uri: String, format: String = "json", method: String = "quick"): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
-    for {
+//    import daf.redis.RedisService
+    val result = for {
       targetFormat   <- checkTargetFormat[Future](format)
       downloadMethod <- checkDownloadMethod[Future](method)
       result         <- executeQuery(request.body, uri, auth, userId, targetFormat, downloadMethod)
     } yield result
+
+    val k: Query = request.body
+
+    println(Json.toJson(k)(QueryFormats.writer))
+
+//    result.map{
+//      res =>
+//        val key1 = userId + "_" + format + "_" + uri + "_" + method + "_" + request.body
+//        val key2 = "queryDataset" + "_" + userId + "_" + request.body.toString
+//        RedisService.insert(key1, key2, res)
+//    }
+
+    result
   }
 
 }

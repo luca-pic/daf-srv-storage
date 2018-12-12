@@ -21,7 +21,7 @@ Seq(gitStampSettings: _*)
 
 organization := "it.gov.daf"
 
-name         := "daf-storage-manager"
+name         := "daf-storage-manager-redis"
 
 scalaVersion := "2.11.12"
 
@@ -67,7 +67,7 @@ headerMappings += (HeaderFileType.conf -> HeaderCommentStyle.HashLineComment)
 dockerBaseImage                      := Docker.base
 dockerPackageMappings in DockerGoal ++= Docker.mappings
 dockerCommands                       ~= Docker.appendSecurity
-dockerCommands                       ~= Docker.updateEnvironment("DAF_STORAGE_MANAGER_ARTIFACT", s"it.gov.daf.daf-storage-manager-${Versions.defaultVersion}-sans-externalized.jar")
+dockerCommands                       ~= Docker.updateEnvironment("DAF_STORAGE_MANAGER_ARTIFACT", s"it.gov.daf.daf-storage-manager-redis-${Versions.defaultVersion}-sans-externalized.jar")
 dockerEntrypoint                     := Docker.entryPoint { name.value }
 dockerExposedPorts                   := Docker.ports
 dockerRepository                     := Docker.repository
