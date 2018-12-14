@@ -119,4 +119,11 @@ trait QueryExecution { this: DatasetController with DatasetExport with FileSyste
     case BatchDownloadMethod => batchExec(params, otherParams, query, targetFormat, userId)
   }
 
+  protected def showQuery(params: DatasetParams, otherParams: List[DatasetParams], query: Query, userId: String) = {
+    prepareQuery(params: DatasetParams, otherParams: List[DatasetParams], query: Query, userId: String) match {
+      case Failure(error) => s"error showQuery: $error"
+      case Success(value) => value
+    }
+  }
+
 }

@@ -25,9 +25,42 @@ spec:
         app: storage-manager-redis
     spec:
       hostAliases:
+      - ip: "192.168.30.12"
+        hostnames:
+        - "master.novalocal"
+        - "master"
+      - ip: "192.168.30.56"
+        hostnames:
+        - "cloudera-master-staging-2.novalocal"
+        - "master-staging-2"
+      - ip: "192.168.30.57"
+        hostnames:
+        - "cloudera-master-staging-3.novalocal"
+        - "master-staging-3"
+      - ip: "192.168.30.13"
+        hostnames:
+        - "slave1.novalocal"
+        - "slave1"
+      - ip: "192.168.30.18"
+        hostnames:
+        - "edge1.novalocal"
+        - "edge1"
+      - ip: "192.168.30.14"
+        hostnames:
+        - "slave2.novalocal"
+        - "slave2"
+      - ip: "192.168.30.19"
+        hostnames:
+        - "edge2.novalocal"
+        - "edge2"
       - ip: "192.168.20.53"
         hostnames:
-          - "idm.teamdigitale.test"
+        - "idm.teamdigitale.test"
+        - "idm"
+      - ip: "192.168.20.5"
+        hostnames:
+        - "nifi-staging.novalocal"
+        - "nifi"
       containers:
       - name: storage-manager-redis
         image: nexus.teamdigitale.test/daf-storage-manager-redis:1.0.6-SNAPSHOT
@@ -96,9 +129,7 @@ spec:
           subPath: keytab/daf.keytab
           readOnly: true
         - name: krb5conf
-#        - name: config-volume-kerb
           mountPath: /etc/krb5.conf
-#          mountPath: /etc/extKerberosConfig
         # ssl
         - name: glusterfsvol
           mountPath: /opt/docker/cert/master-impala.jks
@@ -126,9 +157,6 @@ spec:
       - name: config-volume
         configMap:
           name: storage-manager-conf
-#      - name: config-volume-kerb
-#        configMap:
-#          name: krb5-conf
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim

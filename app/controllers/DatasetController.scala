@@ -127,6 +127,11 @@ class DatasetController @Inject()(configuration: Configuration,
     case _                               => M.raiseError { InvalidRequestException(s"Invalid download method [$method], must be one of [quick | batch]") }
   }
 
+  private def parseQuery(query: Query, uri: String, auth: String, userId: String): String = retrieveQueryReferences(auth, uri, query) match {
+    case Success((mainTable, others)) => showQuery(mainTable, others, query, userId)
+    case Failure(error)               => s"error parseQuery: $error"
+  }
+
   // API
 
   def getSchema(uri: String): Action[AnyContent] = Actions.hadoop(proxyUser).securedAttempt { (_, auth, _) =>
@@ -145,25 +150,19 @@ class DatasetController @Inject()(configuration: Configuration,
   }
 
   def queryDataset(uri: String, format: String = "json", method: String = "quick"): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
-//    import daf.redis.RedisService
-    val result = for {
+    for {
       targetFormat   <- checkTargetFormat[Future](format)
       downloadMethod <- checkDownloadMethod[Future](method)
       result         <- executeQuery(request.body, uri, auth, userId, targetFormat, downloadMethod)
     } yield result
+  }
 
-    val k: Query = request.body
+  def showQueryDataset(uri: String): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
+    val result: String = for {
+      result <- parseQuery(request.body, uri, auth, userId)
+    } yield result
 
-    println(Json.toJson(k)(QueryFormats.writer))
-
-//    result.map{
-//      res =>
-//        val key1 = userId + "_" + format + "_" + uri + "_" + method + "_" + request.body
-//        val key2 = "queryDataset" + "_" + userId + "_" + request.body.toString
-//        RedisService.insert(key1, key2, res)
-//    }
-
-    result
+    Future.successful(Ok(result))
   }
 
 }

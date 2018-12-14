@@ -19,7 +19,7 @@ package daf.dataset.query.json
 import daf.dataset.query._
 import daf.web.json.JsonReadsSyntax
 import play.api.data.validation.ValidationError
-import play.api.libs.json.{JsObject, Reads, Writes, Json, JsNull}
+import play.api.libs.json.Reads
 
 object QueryFormats {
 
@@ -42,19 +42,4 @@ object QueryFormats {
     having  = having,
     limit   = limit
   )
-
-  implicit val writer: Writes[Query] = Writes[Query] {
-    o => JsObject(
-      Seq(
-        "select" -> Json.toJson(o.select),
-//        "where" -> Json.toJson(o.where),
-//        "join" -> Json.toJson(o.join),
-//        "union" -> Json.toJson(o.union),
-//        "groupBy" -> Json.toJson(o.groupBy),
-//        "having" -> Json.toJson(o.groupBy),
-        "limit" -> ClauseFormatWrites.writerLimit(o.limit)
-      ).filter(_._2 != JsNull))
-  }
-
-
 }
