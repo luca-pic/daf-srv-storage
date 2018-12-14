@@ -79,4 +79,15 @@ trait DatasetControllerAPI {
                    @QueryParam("method")
                    method: String): Action[Query]
 
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(
+      name = "query",
+      value = "A valid query",
+      required = true,
+      dataType = "daf.dataset.Query",
+      paramType = "body"
+    )
+  ))
+  def showQueryDataset(@ApiParam(value = "the uri to access the dataset", required = true)
+                   uri: String): Action[Query]
 }
