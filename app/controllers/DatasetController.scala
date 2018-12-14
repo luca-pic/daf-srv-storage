@@ -119,6 +119,11 @@ class DatasetController @Inject()(configuration: Configuration,
     case _                               => M.raiseError { InvalidRequestException(s"Invalid download method [$method], must be one of [quick | batch]") }
   }
 
+  private def parseQuery(query: Query, uri: String, auth: String, userId: String): String = retrieveQueryReferences(auth, uri, query) match {
+    case Success((mainTable, others)) => showQuery(mainTable, others, query, userId)
+    case Failure(error)               => s"error parseQuery: $error"
+  }
+
   // API
 
   def getSchema(uri: String): Action[AnyContent] = Actions.hadoop(proxyUser).securedAttempt { (_, auth, _) =>
@@ -142,6 +147,14 @@ class DatasetController @Inject()(configuration: Configuration,
       downloadMethod <- checkDownloadMethod[Future](method)
       result         <- executeQuery(request.body, uri, auth, userId, targetFormat, downloadMethod)
     } yield result
+  }
+
+  def showQueryDataset(uri: String): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
+    val result: String = for {
+      result <- parseQuery(request.body, uri, auth, userId)
+    } yield result
+
+    Future.successful(Ok(result))
   }
 
 }
