@@ -42,4 +42,5 @@ object QueryFormats {
     having  = having,
     limit   = limit
   )
+
 }
