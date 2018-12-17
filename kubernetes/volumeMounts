@@ -1,3 +1,4 @@
 [ { name = "config-volume", mountPath = "/opt/docker/conf/app",  subPath = None Text, readOnly = None Bool }
 , { name = "glusterfsvol", mountPath = "/opt/docker/conf/logback.xml", subPath = Some "storage-manager/conf/logback.xml", readOnly = Some True }
+, { name = "glusterfsvol", mountPath = "/etc/hadoop/conf", subPath = Some "cloudera/hadoop-conf", readOnly = Some True }
 ]
