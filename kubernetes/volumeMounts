@@ -1,4 +1,10 @@
-[ { name = "config-volume", mountPath = "/opt/docker/conf/app",  subPath = None Text, readOnly = None Bool }
+[ { name = "config-volume", mountPath = "/opt/docker/conf/app", subPath = None Text, readOnly = None Bool }
+, { name = "glusterfsvol", mountPath = "/opt/docker/cert/master-impala.jks", subPath = Some "storage-manager/cert/master-impala.jks", readOnly = Some True }
 , { name = "glusterfsvol", mountPath = "/opt/docker/conf/logback.xml", subPath = Some "storage-manager/conf/logback.xml", readOnly = Some True }
+, { name = "glusterfsvol", mountPath = "/opt/docker/logs", subPath = Some "storage-manager/logs", readOnly = None Bool }
 , { name = "glusterfsvol", mountPath = "/etc/hadoop/conf", subPath = Some "cloudera/hadoop-conf", readOnly = Some True }
+, { name = "glusterfsvol", mountPath = "/etc/hbase/conf", subPath = Some "cloudera/hbase-conf", readOnly = Some True }
+, { name = "daf-keytab", mountPath = "/opt/docker/conf/daf.keytab", subPath = Some "keytab/daf.keytab", readOnly = Some True }
+, { name = "ssl-cacerts", mountPath = "/opt/jdk/jre/lib/security/jssecacerts", subPath = Some "cert/jssecacerts", readOnly = Some True }
+, { name = "krb5conf", mountPath = "/etc/krb5.conf", subPath = None Text, readOnly = None Bool }
 ]
