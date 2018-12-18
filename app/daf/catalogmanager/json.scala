@@ -37,7 +37,7 @@ case class Lang(eng: Option[String], ita: Option[String])
 case class Semantic(id: String, context: Option[String], predicate: Option[String], subject: Option[String], id_label: Option[String], context_label: Option[String], uri_voc: Option[String], property_hierarchy: Option[List[String]], rdf_object: Option[String], field_group: Option[String], uri_property: Option[String])
 case class Constr(`type`: Option[String], param: Option[String])
 case class Operational(theme: String, subtheme: String, logical_uri: Option[String], physical_uri: Option[String], is_std: Boolean, group_own: String, group_access: Option[List[GroupAccess]], std_schema: Option[StdSchema], read_type: String, georef: Option[List[GeoRef]], input_src: InputSrc, ingestion_pipeline: Option[List[IngestionPipeline]], storage_info: Option[StorageInfo], dataset_type: String, is_vocabulary: Option[Boolean], ext_opendata: Option[ExtOpenData], acl: Option[List[Acl]], file_type: Option[String], partitions: Option[List[Partitions]], dataset_proc: Option[DatasetProc], type_info: Option[TypeInfo])
-case class TypeInfo(dataset_type: String, sources: Option[List[String]], query: Option[String])
+case class TypeInfo(dataset_type: String, sources: Option[List[String]], query_json: Option[String], query_sql: Option[String])
 case class ExtOpenData(resourceId: String, name: String, url: String, resourceName: String, id: String, resourceUrl: String)
 case class IngestionPipeline(name: Option[String], param: Option[String])
 case class Acl(groupName: Option[String], groupType: Option[String], permission: Option[String])
@@ -192,10 +192,10 @@ object json {
     o => JsObject(Seq("theme" -> Json.toJson(o.theme), "subtheme" -> Json.toJson(o.subtheme), "logical_uri" -> Json.toJson(o.logical_uri), "physical_uri" -> Json.toJson(o.physical_uri), "is_std" -> Json.toJson(o.is_std), "group_own" -> Json.toJson(o.group_own), "group_access" -> Json.toJson(o.group_access), "std_schema" -> Json.toJson(o.std_schema), "read_type" -> Json.toJson(o.read_type), "georef" -> Json.toJson(o.georef), "input_src" -> Json.toJson(o.input_src), "ingestion_pipeline" -> Json.toJson(o.ingestion_pipeline), "storage_info" -> Json.toJson(o.storage_info), "dataset_type" -> Json.toJson(o.dataset_type), "is_vocabulary" -> Json.toJson(o.is_vocabulary), "ext_opendata" -> Json.toJson(o.ext_opendata), "acl" -> Json.toJson(o.acl), "file_type" -> Json.toJson(o.file_type), "partitions" -> Json.toJson(o.partitions), "dataset_proc" -> Json.toJson(o.dataset_proc), "type_info" -> Json.toJson(o.type_info)).filter(_._2 != JsNull))
   }
   implicit lazy val TypeInfoReads: Reads[TypeInfo] = Reads[TypeInfo] {
-    json => JsSuccess(TypeInfo((json \ "dataset_type").as[String], (json \ "sources").asOpt[List[String]], (json \ "query").asOpt[String]))
+    json => JsSuccess(TypeInfo((json \ "dataset_type").as[String], (json \ "sources").asOpt[List[String]], (json \ "query_json").asOpt[String], (json \ "query_sql").asOpt[String]))
   }
   implicit lazy val typeInfoWrites: Writes[TypeInfo] = Writes[TypeInfo] {
-    o => JsObject(Seq("dataset_type" -> Json.toJson(o.dataset_type), "sources" -> Json.toJson(o.sources), "query" -> Json.toJson(o.query)).filter(_._2 != JsNull))
+    o => JsObject(Seq("dataset_type" -> Json.toJson(o.dataset_type), "sources" -> Json.toJson(o.sources), "query_json" -> Json.toJson(o.query_json), "query_sql" -> Json.toJson(o.query_sql)).filter(_._2 != JsNull))
   }
   implicit lazy val ExtOpenDataReads: Reads[ExtOpenData] = Reads[ExtOpenData] {
     json => JsSuccess(ExtOpenData((json \ "resourceId").as[String], (json \ "name").as[String], (json \ "url").as[String], (json \ "resourceName").as[String], (json \ "id").as[String], (json \ "resourceUrl").as[String]))
