@@ -5,7 +5,3 @@
       template:
         src: ../project/Environment.scala.j2
         dest: ../project/Environment.scala
-    - name: Create daf-storage-manager.yml file
-      template:
-        src: ../kubernetes/daf-storage-manager.yml.j2
-        dest: ../kubernetes/daf-storage-manager.yml

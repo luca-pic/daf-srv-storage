@@ -23,3 +23,6 @@ kubernetes/secrets-prod.yml
 project/project
 /project/Environment.scala
 /kubernetes/daf-storage-manager.yml
+/.bloop/
+/.metals/
+/project/.bloop/daf-srv-storage-build.json
