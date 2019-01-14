@@ -80,10 +80,10 @@ class DatasetController @Inject()(configuration: Configuration,
     case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
   }
 
-//  protected val redisConfig = RedisConfig.reader.read(this.configuration) match {
-//    case Success(config) => config
-//    case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
-//  }
+  protected val redisConfig = RedisConfig.reader.read(this.configuration) match {
+    case Success(config) => config
+    case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
+  }
 
   private def defaultLimit = Read.int { "daf.row_limit" }.read(configuration) getOrElse None
 
@@ -150,11 +150,16 @@ class DatasetController @Inject()(configuration: Configuration,
   }
 
   def queryDataset(uri: String, format: String = "json", method: String = "quick"): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
-    for {
+    val response = for {
       targetFormat   <- checkTargetFormat[Future](format)
       downloadMethod <- checkDownloadMethod[Future](method)
       result         <- executeQuery(request.body, uri, auth, userId, targetFormat, downloadMethod)
     } yield result
+    val k = BodyParsers.parse.json.toString()
+    println("********************")
+    println(k)
+    println("********************")
+    response
   }
 
   def showQueryDataset(uri: String): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
