@@ -18,7 +18,7 @@ package daf.dataset
 
 import java.io.FileNotFoundException
 
-import daf.catalogmanager.{ MetaCatalog, StorageHdfs, StorageKudu }
+import daf.catalogmanager.MetaCatalog
 import daf.filesystem.{ FileDataFormat, FileDataFormats, StringPathSyntax }
 
 import scala.util.{ Failure, Success, Try }
@@ -75,7 +75,7 @@ object DatasetParams {
     case None      => Failure { new FileNotFoundException(s"Cannot find a physical location for path [${catalog.operational.logical_uri}]") }
   }
 
-  private def readDataFormat(catalog: MetaCatalog, hdfsInfo: StorageHdfs) = hdfsInfo.param.getOrElse { "format=parquet" }.split("=") match {
+  private def readDataFormat(catalog: MetaCatalog) = "format=parquet".split("=") match {
     case Array("format", FileDataFormats(format)) => Success(format)
     case Array(unknownKey, unknownValue)          => Failure {
       new RuntimeException(s"Unknown key/value pair [$unknownKey = $unknownValue] encountered in catalog while expecting [format] for catalog path [${catalog.operational.logical_uri}]")
@@ -112,14 +112,14 @@ object DatasetParams {
     params.foldLeft(Map.empty[String, String]) { (params, pair) => addParam(pair._1, pair._2, params) }
   }
 
-  private def readTable(catalog: MetaCatalog, kuduInfo: StorageKudu) = kuduInfo.table_name match {
-    case Some(table) => Success(table)
-    case None        => Failure { new RuntimeException(s"Unknown Kudu table name for catalog path [${catalog.operational.logical_uri}]") }
-  }
+//  private def readTable(catalog: MetaCatalog, kuduInfo: StorageKudu) = kuduInfo.table_name match {
+//    case Some(table) => Success(table)
+//    case None        => Failure { new RuntimeException(s"Unknown Kudu table name for catalog path [${catalog.operational.logical_uri}]") }
+//  }
 
-  private def fromHdfs(catalog: MetaCatalog, hdfsInfo: StorageHdfs) = for {
+  private def fromHdfs(catalog: MetaCatalog) = for {
     path        <- readPhysicalPath(catalog)
-    format      <- readDataFormat(catalog, hdfsInfo)
+    format      <- readDataFormat(catalog)
     separator   <- readSeparator(catalog)
     theme       <- readTheme(catalog)
     subTheme    <- readSubTheme(catalog)
@@ -131,15 +131,16 @@ object DatasetParams {
     extraParams = extraParams
   )
 
-  private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = for {
-    table       <- readTable(catalog, kuduInfo)
-    extraParams <- createParams("separator" -> Some(","))
-  } yield KuduDatasetParams(table, catalog.operational.logical_uri.get, extraParams)
+//  private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = for {
+//    table       <- readTable(catalog, kuduInfo)
+//    extraParams <- createParams("separator" -> Some(","))
+//  } yield KuduDatasetParams(table, catalog.operational.logical_uri.get, extraParams)
 
-  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs orElse info.kudu } match {
-    case Some(hdfsInfo: StorageHdfs) => fromHdfs(catalog, hdfsInfo)
-    case Some(kuduInfo: StorageKudu) => fromKudu(catalog, kuduInfo)
-    case Some(_) | None              => Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
-  }
+//  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs orElse info.kudu } match {
+//    case Some(_) => fromHdfs(catalog)
+//    case Some(kuduInfo: StorageKudu) => fromKudu(catalog, kuduInfo)
+//    case Some(_) | None              => Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
+//  }
 
+  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = fromHdfs(catalog)
 }
