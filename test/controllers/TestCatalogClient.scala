@@ -32,6 +32,7 @@ sealed class TestCatalogManagerClient extends CatalogManagerClient("") {
 
   private def makeCatalog(id: String) = MetaCatalog(
     dataschema  = DatasetCatalog(
+      encoding = None,
       avro = null,
       flatSchema = List.empty,
       kyloSchema = None
@@ -39,26 +40,21 @@ sealed class TestCatalogManagerClient extends CatalogManagerClient("") {
     operational = Operational(
       theme              = "",
       subtheme           = "",
-      logical_uri        = id,
+      logical_uri        = Some(id),
       physical_uri       = Some { s"test-dir/$id" },
       is_std             = true,
       group_own          = "test",
-      group_access       = None,
       std_schema         = None,
       read_type          = "",
-      georef             = None,
-      input_src          = null,
-      ingestion_pipeline = None,
-      storage_info       = Some {
-        StorageInfo(
-          hdfs = Some { StorageHdfs(s"test-dir/$id", Some(s"test-dir/$id"), None) },
-          kudu = None,
-          hbase = None,
-          textdb = None,
-          mongo = None
-        )
-      },
-      dataset_type       = ""
+      dataset_type       = "",
+      is_vocabulary      = None,
+      ext_opendata       = None,
+      acl                = None,
+      file_type          = None,
+      partitions         = None,
+      dataset_proc       = None,
+      type_info          = None,
+      input_src          = null
     ),
     dcatapit = null
   )
