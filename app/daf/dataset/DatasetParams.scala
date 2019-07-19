@@ -18,10 +18,10 @@ package daf.dataset
 
 import java.io.FileNotFoundException
 
-import daf.catalogmanager.MetaCatalog
-import daf.filesystem.{ FileDataFormat, FileDataFormats, StringPathSyntax }
+import daf.catalogmanager.{MetaCatalog, StorageHdfs}
+import daf.filesystem.{FileDataFormat, FileDataFormats, StringPathSyntax}
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 sealed trait DatasetParams {
 
@@ -75,7 +75,7 @@ object DatasetParams {
     case None      => Failure { new FileNotFoundException(s"Cannot find a physical location for path [${catalog.operational.logical_uri}]") }
   }
 
-  private def readDataFormat(catalog: MetaCatalog) = "format=parquet".split("=") match {
+  private def readDataFormat(catalog: MetaCatalog, hdfsInfo: Option[StorageHdfs]) = hdfsInfo.getOrElse(StorageHdfs("", None, None)).param.getOrElse{ "format=parquet" }.split("=") match {
     case Array("format", FileDataFormats(format)) => Success(format)
     case Array(unknownKey, unknownValue)          => Failure {
       new RuntimeException(s"Unknown key/value pair [$unknownKey = $unknownValue] encountered in catalog while expecting [format] for catalog path [${catalog.operational.logical_uri}]")
@@ -117,9 +117,9 @@ object DatasetParams {
 //    case None        => Failure { new RuntimeException(s"Unknown Kudu table name for catalog path [${catalog.operational.logical_uri}]") }
 //  }
 
-  private def fromHdfs(catalog: MetaCatalog) = for {
+  private def fromHdfs(catalog: MetaCatalog, hdfsInfo: Option[StorageHdfs]) = for {
     path        <- readPhysicalPath(catalog)
-    format      <- readDataFormat(catalog)
+    format      <- readDataFormat(catalog, hdfsInfo)
     separator   <- readSeparator(catalog)
     theme       <- readTheme(catalog)
     subTheme    <- readSubTheme(catalog)
@@ -142,5 +142,5 @@ object DatasetParams {
 //    case Some(_) | None              => Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
 //  }
 
-  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = fromHdfs(catalog)
+  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = fromHdfs(catalog, catalog.operational.storege_info)
 }
