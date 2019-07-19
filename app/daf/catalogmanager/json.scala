@@ -36,7 +36,7 @@ case class EntityExtraction(name: String, param: Option[Seq[KeyValue]])
 case class Lang(eng: Option[String], ita: Option[String])
 case class Semantic(id: String, context: Option[String], predicate: Option[String], subject: Option[String], id_label: Option[String], context_label: Option[String], uri_voc: Option[String], property_hierarchy: Option[List[String]], rdf_object: Option[String], field_group: Option[String], uri_property: Option[String])
 case class Constr(`type`: Option[String], param: Option[String])
-case class Operational(theme: String, subtheme: String, logical_uri: Option[String], physical_uri: Option[String], is_std: Boolean, group_own: String, std_schema: Option[StdSchema], read_type: String, input_src: InputSrc, dataset_type: String, is_vocabulary: Option[Boolean], ext_opendata: Option[ExtOpenData], acl: Option[List[Acl]], file_type: Option[String], partitions: Option[List[Partitions]], dataset_proc: Option[DatasetProc], type_info: Option[TypeInfo])
+case class Operational(theme: String, subtheme: String, logical_uri: Option[String], physical_uri: Option[String], is_std: Boolean, group_own: String, std_schema: Option[StdSchema], read_type: String, input_src: InputSrc, dataset_type: String, is_vocabulary: Option[Boolean], ext_opendata: Option[ExtOpenData], acl: Option[List[Acl]], file_type: Option[String], partitions: Option[List[Partitions]], dataset_proc: Option[DatasetProc], type_info: Option[TypeInfo], storege_info: Option[StorageHdfs])
 case class TypeInfo(dataset_type: String, sources: Option[List[String]], query_json: Option[String], query_sql: Option[String])
 case class ExtOpenData(resourceId: String, name: String, url: String, resourceName: String, id: String, resourceUrl: String)
 case class Acl(groupName: Option[String], groupType: Option[String], permission: Option[String])
@@ -48,7 +48,7 @@ case class InputSrc(sftp: Option[List[SourceSftp]], srv_pull: Option[List[Source
 case class SourceSftp(name: String, url: Option[String], username: Option[String], password: Option[String], param: Option[String])
 // Info for the ingestion source of type pulling a service, that is we make a call to the specified url
 case class SourceSrvPull(name: String, url: String, username: Option[String], password: Option[String], access_token: Option[String], param: Option[String])
-// Info for the ingestion source of type pushing a service, that is we expose a service that is continuously listening
+case class StorageHdfs(name: String, param: Option[String], path: Option[String])
 case class SourceSrvPush(name: String, url: String, username: Option[String], password: Option[String], access_token: Option[String], param: Option[String])
 case class StdSchema(std_uri: String, fields_conv: List[ConversionField])
 case class ConversionSchema(fields_conv: List[ConversionField], fields_custom: Option[List[CustomField]])
@@ -164,11 +164,17 @@ object json {
   implicit lazy val ConstrWrites: Writes[Constr] = Writes[Constr] {
     o => JsObject(Seq("type" -> Json.toJson(o.`type`), "param" -> Json.toJson(o.param)).filter(_._2 != JsNull))
   }
+  implicit lazy val StorageHdfsReads: Reads[StorageHdfs] = Reads[StorageHdfs] {
+    json => JsSuccess(StorageHdfs((json \ "name").as[String], (json \ "path").asOpt[String], (json \ "param").asOpt[String]))
+  }
+  implicit lazy val StorageHdfsWrites: Writes[StorageHdfs] = Writes[StorageHdfs] {
+    o => JsObject(Seq("name" -> Json.toJson(o.name), "path" -> Json.toJson(o.path), "param" -> Json.toJson(o.param)).filter(_._2 != JsNull))
+  }
   implicit lazy val OperationalReads: Reads[Operational] = Reads[Operational] {
-    json => JsSuccess(Operational((json \ "theme").as[String], (json \ "subtheme").as[String], (json \ "logical_uri").asOpt[String], (json \ "physical_uri").asOpt[String], (json \ "is_std").as[Boolean], (json \ "group_own").as[String], (json \ "std_schema").asOpt[StdSchema], (json \ "read_type").as[String], (json \ "input_src").as[InputSrc], (json \ "dataset_type").as[String], (json \ "is_vocabulary").asOpt[Boolean], (json \ "ext_opendata").asOpt[ExtOpenData], (json \ "acl").asOpt[List[Acl]], (json \ "file_type").asOpt[String], (json \ "partitions").asOpt[List[Partitions]], (json \ "dataset_proc").asOpt[DatasetProc], (json \ "type_info").asOpt[TypeInfo]))
+    json => JsSuccess(Operational((json \ "theme").as[String], (json \ "subtheme").as[String], (json \ "logical_uri").asOpt[String], (json \ "physical_uri").asOpt[String], (json \ "is_std").as[Boolean], (json \ "group_own").as[String], (json \ "std_schema").asOpt[StdSchema], (json \ "read_type").as[String], (json \ "input_src").as[InputSrc], (json \ "dataset_type").as[String], (json \ "is_vocabulary").asOpt[Boolean], (json \ "ext_opendata").asOpt[ExtOpenData], (json \ "acl").asOpt[List[Acl]], (json \ "file_type").asOpt[String], (json \ "partitions").asOpt[List[Partitions]], (json \ "dataset_proc").asOpt[DatasetProc], (json \ "type_info").asOpt[TypeInfo], (json \ "storage_info").asOpt[StorageHdfs]))
   }
   implicit lazy val OperationalWrites: Writes[Operational] = Writes[Operational] {
-    o => JsObject(Seq("theme" -> Json.toJson(o.theme), "subtheme" -> Json.toJson(o.subtheme), "logical_uri" -> Json.toJson(o.logical_uri), "physical_uri" -> Json.toJson(o.physical_uri), "is_std" -> Json.toJson(o.is_std), "group_own" -> Json.toJson(o.group_own), "std_schema" -> Json.toJson(o.std_schema), "read_type" -> Json.toJson(o.read_type), "input_src" -> Json.toJson(o.input_src), "dataset_type" -> Json.toJson(o.dataset_type), "is_vocabulary" -> Json.toJson(o.is_vocabulary), "ext_opendata" -> Json.toJson(o.ext_opendata), "acl" -> Json.toJson(o.acl), "file_type" -> Json.toJson(o.file_type), "partitions" -> Json.toJson(o.partitions), "dataset_proc" -> Json.toJson(o.dataset_proc), "type_info" -> Json.toJson(o.type_info)).filter(_._2 != JsNull))
+    o => JsObject(Seq("theme" -> Json.toJson(o.theme), "subtheme" -> Json.toJson(o.subtheme), "logical_uri" -> Json.toJson(o.logical_uri), "physical_uri" -> Json.toJson(o.physical_uri), "is_std" -> Json.toJson(o.is_std), "group_own" -> Json.toJson(o.group_own), "std_schema" -> Json.toJson(o.std_schema), "read_type" -> Json.toJson(o.read_type), "input_src" -> Json.toJson(o.input_src), "dataset_type" -> Json.toJson(o.dataset_type), "is_vocabulary" -> Json.toJson(o.is_vocabulary), "ext_opendata" -> Json.toJson(o.ext_opendata), "acl" -> Json.toJson(o.acl), "file_type" -> Json.toJson(o.file_type), "partitions" -> Json.toJson(o.partitions), "dataset_proc" -> Json.toJson(o.dataset_proc), "type_info" -> Json.toJson(o.type_info), "storage_info" -> Json.toJson(o.storege_info)).filter(_._2 != JsNull))
   }
   implicit lazy val TypeInfoReads: Reads[TypeInfo] = Reads[TypeInfo] {
     json => JsSuccess(TypeInfo((json \ "dataset_type").as[String], (json \ "sources").asOpt[List[String]], (json \ "query_json").asOpt[String], (json \ "query_sql").asOpt[String]))
