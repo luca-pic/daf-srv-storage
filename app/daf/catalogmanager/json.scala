@@ -48,7 +48,7 @@ case class InputSrc(sftp: Option[List[SourceSftp]], srv_pull: Option[List[Source
 case class SourceSftp(name: String, url: Option[String], username: Option[String], password: Option[String], param: Option[String])
 // Info for the ingestion source of type pulling a service, that is we make a call to the specified url
 case class SourceSrvPull(name: String, url: String, username: Option[String], password: Option[String], access_token: Option[String], param: Option[String])
-case class StorageInfo(hdfs: StorageHdfs)
+case class StorageInfo(hdfs: Option[StorageHdfs])
 case class StorageHdfs(name: String, param: Option[String], path: Option[String])
 case class SourceSrvPush(name: String, url: String, username: Option[String], password: Option[String], access_token: Option[String], param: Option[String])
 case class StdSchema(std_uri: String, fields_conv: List[ConversionField])
@@ -172,7 +172,7 @@ object json {
     o => JsObject(Seq("name" -> Json.toJson(o.name), "path" -> Json.toJson(o.path), "param" -> Json.toJson(o.param)).filter(_._2 != JsNull))
   }
   implicit lazy val StorageInfoReads: Reads[StorageInfo] = Reads[StorageInfo] {
-    json => JsSuccess(StorageInfo((json \ "hdfs").as[StorageHdfs]))
+    json => JsSuccess(StorageInfo((json \ "hdfs").asOpt[StorageHdfs]))
   }
   implicit lazy val StorageInfoWrites: Writes[StorageInfo] = Writes[StorageInfo]{
     o => JsObject(Seq("hdfs" -> Json.toJson(o.hdfs)).filter(_._2 != JsNull))
