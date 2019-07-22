@@ -21,7 +21,7 @@ import java.io.FileNotFoundException
 import daf.catalogmanager.{MetaCatalog, StorageHdfs, StorageInfo}
 import daf.filesystem.{FileDataFormat, FileDataFormats, StringPathSyntax}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 sealed trait DatasetParams {
 
@@ -136,8 +136,8 @@ object DatasetParams {
 //    extraParams <- createParams("separator" -> Some(","))
 //  } yield KuduDatasetParams(table, catalog.operational.logical_uri.get, extraParams)
 
-  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info match {
-    case Some(storageInfo: StorageInfo) => fromHdfs(catalog, storageInfo.hdfs)
+  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs  } match {
+    case Some(hdfsInfo: StorageHdfs) => fromHdfs(catalog, hdfsInfo)
     case Some(_) | None              => Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
   }
 }
