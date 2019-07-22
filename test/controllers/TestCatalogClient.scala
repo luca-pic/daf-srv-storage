@@ -55,7 +55,7 @@ sealed class TestCatalogManagerClient extends CatalogManagerClient("") {
       dataset_proc       = None,
       type_info          = None,
       input_src          = null,
-      storege_info       = None
+      storage_info       = None
     ),
     dcatapit = null
   )

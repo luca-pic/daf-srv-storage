@@ -18,7 +18,7 @@ package daf.dataset
 
 import java.io.FileNotFoundException
 
-import daf.catalogmanager.{MetaCatalog, StorageHdfs}
+import daf.catalogmanager.{MetaCatalog, StorageHdfs, StorageInfo}
 import daf.filesystem.{FileDataFormat, FileDataFormats, StringPathSyntax}
 
 import scala.util.{Failure, Success, Try}
@@ -75,7 +75,7 @@ object DatasetParams {
     case None      => Failure { new FileNotFoundException(s"Cannot find a physical location for path [${catalog.operational.logical_uri}]") }
   }
 
-  private def readDataFormat(catalog: MetaCatalog, hdfsInfo: Option[StorageHdfs]) = hdfsInfo.getOrElse(StorageHdfs("", None, None)).param.getOrElse{ "format=parquet" }.split("=") match {
+  private def readDataFormat(catalog: MetaCatalog, hdfsInfo: StorageHdfs) = hdfsInfo.param.getOrElse { "format=parquet" }.split("=") match {
     case Array("format", FileDataFormats(format)) => Success(format)
     case Array(unknownKey, unknownValue)          => Failure {
       new RuntimeException(s"Unknown key/value pair [$unknownKey = $unknownValue] encountered in catalog while expecting [format] for catalog path [${catalog.operational.logical_uri}]")
@@ -117,7 +117,7 @@ object DatasetParams {
 //    case None        => Failure { new RuntimeException(s"Unknown Kudu table name for catalog path [${catalog.operational.logical_uri}]") }
 //  }
 
-  private def fromHdfs(catalog: MetaCatalog, hdfsInfo: Option[StorageHdfs]) = for {
+  private def fromHdfs(catalog: MetaCatalog, hdfsInfo: StorageHdfs) = for {
     path        <- readPhysicalPath(catalog)
     format      <- readDataFormat(catalog, hdfsInfo)
     separator   <- readSeparator(catalog)
@@ -136,11 +136,8 @@ object DatasetParams {
 //    extraParams <- createParams("separator" -> Some(","))
 //  } yield KuduDatasetParams(table, catalog.operational.logical_uri.get, extraParams)
 
-//  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs orElse info.kudu } match {
-//    case Some(_) => fromHdfs(catalog)
-//    case Some(kuduInfo: StorageKudu) => fromKudu(catalog, kuduInfo)
-//    case Some(_) | None              => Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
-//  }
-
-  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = fromHdfs(catalog, catalog.operational.storege_info)
+  def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info match {
+    case Some(storageInfo: StorageInfo) => fromHdfs(catalog, storageInfo.hdfs)
+    case Some(_) | None              => Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
+  }
 }
