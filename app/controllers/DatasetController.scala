@@ -24,28 +24,28 @@ import cats.instances.future.catsStdInstancesForFuture
 import cats.instances.try_.catsStdInstancesForTry
 import cats.instances.list.catsStdInstancesForList
 import cats.syntax.traverse.toTraverseOps
-import config.{ FileExportConfig, ImpalaConfig }
+import config.{FileExportConfig, ImpalaConfig}
 import daf.catalogmanager.CatalogManagerClient
 import daf.dataset.export.FileExportService
 import daf.dataset._
 import daf.dataset.query.jdbc.JdbcQueryService
-import daf.dataset.query.{ Query, UnresolvedReference }
+import daf.dataset.query.{Query, UnresolvedReference}
 import daf.dataset.query.json.QueryFormats.reader
 import daf.error.InvalidRequestException
-import daf.instances.{ FileSystemInstance, ImpalaTransactorInstance }
+import daf.instances.{FileSystemInstance, ImpalaTransactorInstance}
 import daf.web._
-import daf.filesystem.{ DownloadableFormats, FileDataFormat }
-import it.gov.daf.common.config.{ ConfigReadException, Read }
-import org.apache.hadoop.conf.{ Configuration => HadoopConfiguration }
+import daf.filesystem.{DownloadableFormats, FileDataFormat}
+import it.gov.daf.common.config.{ConfigReadException, Read}
+import org.apache.hadoop.conf.{Configuration => HadoopConfiguration}
 import org.apache.hadoop.fs.FileSystem
 import org.pac4j.play.store.PlaySessionStore
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 class DatasetController @Inject()(configuration: Configuration,
                                   playSessionStore: PlaySessionStore,
@@ -94,10 +94,14 @@ class DatasetController @Inject()(configuration: Configuration,
 
   private def resolveReferences(auth: String, query: Query) = query.unresolvedReferences.toList.traverse[Try, DatasetParams] { retrieveCatalog(auth, _) }
 
-  private def retrieveQueryReferences(auth: String, uri: String, query: Query) = for {
-    table  <- retrieveCatalog(auth, uri)
-    others <- resolveReferences(auth, query)
-  } yield table -> others
+  private def retrieveQueryReferences(auth: String, uri: String, query: Query) = {
+    val response = for {
+      table  <- retrieveCatalog(auth, uri)
+      others <- resolveReferences(auth, query)
+    } yield table -> others
+    Logger.debug(s"response retriveQueryReference: $response")
+    response
+  }
 
   private def retrieveBulkData(uri: String, auth: String, userId: String, targetFormat: FileDataFormat, method: DownloadMethod, limit: Option[Int]) = retrieveCatalog(auth, uri) match {
     case Success(params) => download(params, userId, targetFormat, method, limit)
@@ -110,13 +114,13 @@ class DatasetController @Inject()(configuration: Configuration,
   }
 
   private def checkTargetFormat[M[_]](format: String)(implicit M: MonadError[M, Throwable]): M[FileDataFormat] = format.toLowerCase match {
-    case DownloadableFormats(targetFormat) => M.pure { targetFormat }
-    case _                                 => M.raiseError { InvalidRequestException(s"Invalid download format [$format], must be one of [csv | json]") }
+    case DownloadableFormats(targetFormat) => Logger.debug(s"targetFormat: $targetFormat"); M.pure { targetFormat }
+    case _                                 => Logger.debug("Invalid download format");M.raiseError { InvalidRequestException(s"Invalid download format [$format], must be one of [csv | json]") }
   }
 
   private def checkDownloadMethod[M[_]](method: String)(implicit M: MonadError[M, Throwable]): M[DownloadMethod] = method.toLowerCase match {
-    case DownloadMethods(downloadMethod) => M.pure { downloadMethod }
-    case _                               => M.raiseError { InvalidRequestException(s"Invalid download method [$method], must be one of [quick | batch]") }
+    case DownloadMethods(downloadMethod) => Logger.debug(s"downloadMethod: $downloadMethod");M.pure { downloadMethod }
+    case _                               => Logger.debug(s"Invalid downloadMethod: $method");M.raiseError { InvalidRequestException(s"Invalid download method [$method], must be one of [quick | batch]") }
   }
 
   private def parseQuery(query: Query, uri: String, auth: String, userId: String): String = retrieveQueryReferences(auth, uri, query) match {

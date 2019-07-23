@@ -20,8 +20,9 @@ import java.io.FileNotFoundException
 
 import daf.catalogmanager.{MetaCatalog, StorageHdfs, StorageInfo}
 import daf.filesystem.{FileDataFormat, FileDataFormats, StringPathSyntax}
+import play.api.Logger
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 sealed trait DatasetParams {
 
@@ -75,13 +76,16 @@ object DatasetParams {
     case None      => Failure { new FileNotFoundException(s"Cannot find a physical location for path [${catalog.operational.logical_uri}]") }
   }
 
-  private def readDataFormat(catalog: MetaCatalog, hdfsInfo: StorageHdfs) = hdfsInfo.param.getOrElse { "format=parquet" }.split("=") match {
-    case Array("format", FileDataFormats(format)) => Success(format)
-    case Array(unknownKey, unknownValue)          => Failure {
-      new RuntimeException(s"Unknown key/value pair [$unknownKey = $unknownValue] encountered in catalog while expecting [format] for catalog path [${catalog.operational.logical_uri}]")
-    }
-    case _                                        => Failure {
-      new RuntimeException(s"Unknown param value encountered for catalog path [${catalog.operational.logical_uri}]")
+  private def readDataFormat(catalog: MetaCatalog, hdfsInfo: StorageHdfs) = {
+    Logger.debug(s"[readDataFormat] hdfsInfo: $hdfsInfo")
+    hdfsInfo.param.getOrElse { "format=parquet" }.split("=") match {
+      case Array("format", FileDataFormats(format)) => Logger.debug(s"[success]format: $format");Success(format)
+      case Array(unknownKey, unknownValue) => Logger.debug(s"[unknown] ($unknownKey, $unknownValue)");Failure {
+        new RuntimeException(s"Unknown key/value pair [$unknownKey = $unknownValue] encountered in catalog while expecting [format] for catalog path [${catalog.operational.logical_uri}]")
+      }
+      case _ => Logger.debug("error in readDataFormat");Failure {
+        new RuntimeException(s"Unknown param value encountered for catalog path [${catalog.operational.logical_uri}]")
+      }
     }
   }
 
@@ -117,19 +121,24 @@ object DatasetParams {
 //    case None        => Failure { new RuntimeException(s"Unknown Kudu table name for catalog path [${catalog.operational.logical_uri}]") }
 //  }
 
-  private def fromHdfs(catalog: MetaCatalog, hdfsInfo: StorageHdfs) = for {
-    path        <- readPhysicalPath(catalog)
-    format      <- readDataFormat(catalog, hdfsInfo)
-    separator   <- readSeparator(catalog)
-    theme       <- readTheme(catalog)
-    subTheme    <- readSubTheme(catalog)
-    extraParams <- createParams("separator" -> separator, "theme" -> theme, "subTheme" -> subTheme)
-  } yield FileDatasetParams(
-    path        = path,
-    catalogUri  = catalog.operational.logical_uri.get,
-    format      = format,
-    extraParams = extraParams
-  )
+  private def fromHdfs(catalog: MetaCatalog, hdfsInfo: StorageHdfs) =
+    {
+      val resp = for {
+        path        <- readPhysicalPath(catalog)
+        format      <- readDataFormat(catalog, hdfsInfo)
+        separator   <- readSeparator(catalog)
+        theme       <- readTheme(catalog)
+        subTheme    <- readSubTheme(catalog)
+        extraParams <- createParams("separator" -> separator, "theme" -> theme, "subTheme" -> subTheme)
+      } yield FileDatasetParams(
+        path        = path,
+        catalogUri  = catalog.operational.logical_uri.get,
+        format      = format,
+        extraParams = extraParams
+      )
+      Logger.debug(s"resp fromHdfs: $resp")
+      resp
+    }
 
 //  private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = for {
 //    table       <- readTable(catalog, kuduInfo)
@@ -137,7 +146,7 @@ object DatasetParams {
 //  } yield KuduDatasetParams(table, catalog.operational.logical_uri.get, extraParams)
 
   def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs  } match {
-    case Some(hdfsInfo: StorageHdfs) => fromHdfs(catalog, hdfsInfo)
-    case Some(_) | None              => Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
+    case Some(hdfsInfo: StorageHdfs) => Logger.debug(s"[fromCatalog]find storageHdfs: $hdfsInfo");fromHdfs(catalog, hdfsInfo)
+    case Some(x) | None              => Logger.debug(s"[fromCatalog-error]find $x");Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
   }
 }

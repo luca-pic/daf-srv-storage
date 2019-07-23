@@ -18,13 +18,14 @@ package controllers
 
 import cats.syntax.show.toShow
 import daf.dataset._
-import daf.filesystem.{ FileDataFormat, fileFormatShow }
+import daf.filesystem.{FileDataFormat, fileFormatShow}
 import daf.web._
 import daf.instances.FileSystemInstance
 import it.gov.daf.common.utils._
+import play.api.Logger
 
 import scala.concurrent.Future
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 trait DownloadExecution { this: DatasetController with DatasetExport with FileSystemInstance =>
 
@@ -65,8 +66,8 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
   // API
 
   protected def quickDownload(params: DatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int] = None) = params match {
-    case fileParams: FileDatasetParams => quickFileDownload(fileParams, userId, targetFormat, limit)
-    case kuduParams: KuduDatasetParams => failQuickDownload(kuduParams, targetFormat, limit) // no quick download option for kudu
+    case fileParams: FileDatasetParams => Logger.debug(s"[quickDownload] param: $fileParams");quickFileDownload(fileParams, userId, targetFormat, limit)
+    case kuduParams: KuduDatasetParams => Logger.debug(s"[quickDownload] error");failQuickDownload(kuduParams, targetFormat, limit) // no quick download option for kudu
   }
 
   protected def batchDownload(params: DatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int] = None) = params match {
@@ -75,8 +76,8 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
   }
 
   protected def download(params: DatasetParams, userId: String, targetFormat: FileDataFormat, method: DownloadMethod, limit: Option[Int] = None) = method match {
-    case QuickDownloadMethod => quickDownload(params, userId, targetFormat, limit)
-    case BatchDownloadMethod => batchDownload(params, userId, targetFormat, limit)
+    case QuickDownloadMethod => Logger.debug("quickDownload");quickDownload(params, userId, targetFormat, limit)
+    case BatchDownloadMethod => Logger.debug("batchDownload");batchDownload(params, userId, targetFormat, limit)
   }
 
 }
