@@ -16,6 +16,8 @@
 
 package daf.filesystem
 
+import play.api.Logger
+
 sealed trait FileDataFormat extends FileFormat
 
 case object RawFileFormat extends FileDataFormat with NoExtensions with NoCompression
@@ -54,12 +56,24 @@ object FileDataFormats {
   def isValid(format: String) = validExtensions contains format
 
   def unapply(candidate: String): Option[FileDataFormat] =
-    if      (parquet.extensions contains candidate) Some { parquet }
-    else if (json.extensions    contains candidate) Some { json }
-    else if (avro.extensions    contains candidate) Some { avro }
-    else if (csv.extensions     contains candidate) Some { csv }
-    else if (candidate.isEmpty) Some { raw }
-    else None
+    if      (parquet.extensions contains candidate) {
+      Logger.debug(s"[FileFormat] candidate: $candidate, parquet");Some { parquet }
+    }
+    else if (json.extensions    contains candidate) {
+      Logger.debug(s"[FileFormat] candidate: $candidate, json");Some { json }
+    }
+    else if (avro.extensions    contains candidate) {
+      Logger.debug(s"[FileFormat] candidate: $candidate, avro");Some { avro }
+    }
+    else if (csv.extensions     contains candidate) {
+      Logger.debug(s"[FileFormat] candidate: $candidate, csv");Some { csv }
+    }
+    else if (candidate.isEmpty) {
+      Logger.debug(s"[FileFormat] candidate: $candidate, raw");Some { raw }
+    }
+    else {
+      Logger.debug(s"[FileFormat] candidate: $candidate, None");None
+    }
 
   private def findCandidates(parts: List[String], candidates: List[FileDataFormat] = List.empty): List[FileDataFormat] = parts match {
     case FileDataFormats(part) :: others => findCandidates(others, part :: candidates)

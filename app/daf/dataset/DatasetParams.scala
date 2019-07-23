@@ -78,7 +78,7 @@ object DatasetParams {
 
   private def readDataFormat(catalog: MetaCatalog, hdfsInfo: StorageHdfs) = {
     Logger.debug(s"[readDataFormat] hdfsInfo: $hdfsInfo")
-    hdfsInfo.param.getOrElse { "format=parquet" }.split("=") match {
+    hdfsInfo.param.getOrElse("format=parquet").split("=") match {
       case Array("format", FileDataFormats(format)) => Logger.debug(s"[success]format: $format");Success(format)
       case Array(unknownKey, unknownValue) => Logger.debug(s"[unknown] ($unknownKey, $unknownValue)");Failure {
         new RuntimeException(s"Unknown key/value pair [$unknownKey = $unknownValue] encountered in catalog while expecting [format] for catalog path [${catalog.operational.logical_uri}]")
