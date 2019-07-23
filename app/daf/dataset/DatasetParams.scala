@@ -147,6 +147,7 @@ object DatasetParams {
 
   def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs  } match {
     case Some(hdfsInfo: StorageHdfs) => Logger.debug(s"[fromCatalog]find storageHdfs: $hdfsInfo");fromHdfs(catalog, hdfsInfo)
-    case Some(x) | None              => Logger.debug(s"[fromCatalog-error]find $x");Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
+    case Some(x)                     => Logger.debug(s"[fromCatalog-error]find $x");Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
+    case None                        => Logger.debug(s"[fromCatalog-error] find none"); Failure { new IllegalArgumentException(s"Unable to extract valid parameters for logical path [${catalog.operational.logical_uri}]") }
   }
 }
