@@ -22,11 +22,11 @@ import java.security.AccessControlException
 import it.gov.daf.common.config.Read
 import json._
 import org.slf4j.LoggerFactory
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import play.api.libs.json.Json
-import scalaj.http.{ Http, HttpResponse }
+import scalaj.http.{Http, HttpResponse}
 
-import scala.util.{ Failure, Try, Success => TrySuccess }
+import scala.util.{Failure, Try, Success => TrySuccess}
 
 class CatalogManagerClient(serviceUrl: String) {
 
@@ -43,10 +43,14 @@ class CatalogManagerClient(serviceUrl: String) {
     else if (response.isError) Failure { new RuntimeException(s"Error retrieving catalog data: [${response.code}] with body [${response.body}]") }
     else Try { Json.parse(response.body).as[MetaCatalog] }
 
-  def getById(authorization: String, catalogId: String): Try[MetaCatalog] = for {
-    response <- callService(authorization, catalogId)
-    catalog  <- parseCatalog(response)
-  } yield catalog
+  def getById(authorization: String, catalogId: String): Try[MetaCatalog] = {
+    val catalog = for {
+      response <- callService(authorization, catalogId)
+      catalog  <- parseCatalog(response)
+    } yield catalog
+    Logger.debug(s"[getById] $catalog")
+    catalog
+  }
 
 }
 
