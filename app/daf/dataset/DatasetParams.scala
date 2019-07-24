@@ -80,7 +80,6 @@ object DatasetParams {
     Logger.debug(s"[readDataFormat]hdfsInfo: $hdfsInfo")
     Logger.debug(s"[readDataFormat]param: ${hdfsInfo.param.getOrElse("format=parquet")}")
     Logger.debug(s"[readDataFormat]list param: ${hdfsInfo.param.getOrElse("format=parquet").split("=").toList}")
-    Logger.debug(s"[readDataFormat]FileDataFormats: ${FileDataFormats(hdfsInfo.param.getOrElse("format=parquet").split("="))}")
     hdfsInfo.param.getOrElse("format=parquet").split("=") match {
       case Array("format", FileDataFormats(format)) => Logger.debug(s"[success]format: $format");Success(format)
       case Array(unknownKey, unknownValue) => Logger.debug(s"[unknown] ($unknownKey, $unknownValue)");Failure {
